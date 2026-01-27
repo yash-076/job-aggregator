@@ -1,0 +1,12 @@
+company: "Microsoft"
+base_url: "https://www.microsoft.com"
+job_url: "https://careers.microsoft.com/us/en/search-results"
+source: "microsoft_careers"
+
+selectors:
+  job_container: "li.job-card"
+  title: "h3.job-title"
+  location: "span.job-location"
+  job_type: "span.job-type"
+  link: "a.job-link"
+  description: "div.job-summary"

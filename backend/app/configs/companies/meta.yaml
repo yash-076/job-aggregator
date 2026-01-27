@@ -1,0 +1,12 @@
+company: "Meta"
+base_url: "https://www.meta.com"
+job_url: "https://www.metacareers.com/jobs/"
+source: "meta_careers"
+
+selectors:
+  job_container: "div.jobs-container"
+  title: "h2.job-title"
+  location: "span.location"
+  job_type: "span.employment-type"
+  link: "a.job-link"
+  description: "div.job-description"
