@@ -4,7 +4,7 @@ from typing import Optional
 from urllib.parse import urlparse, urlunparse
 from pydantic import BaseModel
 
-from backend.app.fetchers.base import JobData
+from app.fetchers.base import JobData
 
 
 class NormalizedJob(BaseModel):

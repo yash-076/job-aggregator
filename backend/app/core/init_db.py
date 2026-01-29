@@ -1,5 +1,5 @@
-from backend.app.core.database import engine, Base
-from backend.app.models.job_model import Job
+from app.core.database import engine, Base
+from app.models.job_model import Job
 
 
 def init_db():

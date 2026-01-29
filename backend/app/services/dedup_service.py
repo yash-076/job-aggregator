@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from backend.app.core.redis import redis
+from app.core.redis import redis
 
 
 @dataclass

@@ -1,14 +1,13 @@
 import logging
 from typing import List
 from pathlib import Path
-from backend.app.fetchers.base import JobData
-from backend.app.fetchers.career_page import CareerPageFetcher
-from backend.app.fetchers.platform import LinkedInFetcher
-from backend.app.services.normalizer import normalize, NormalizedJob
-from backend.app.services.dedup_service import DedupService
+from app.fetchers.base import JobData
+from app.fetchers.career_page import CareerPageFetcher
+from app.fetchers.platform import LinkedInFetcher
+from app.services.normalizer import normalize, NormalizedJob
+from app.services.dedup_service import DedupService
 
 logger = logging.getLogger(__name__)
-
 
 class FetcherService:
     """

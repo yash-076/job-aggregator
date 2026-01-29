@@ -2,7 +2,7 @@ import logging
 import httpx
 from typing import List
 from datetime import datetime
-from backend.app.fetchers.base import BaseFetcher, JobData
+from app.fetchers.base import BaseFetcher, JobData
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, JSON
 from sqlalchemy.sql import func
-from backend.app.core.database import Base
+from app.core.database import Base
 
 
 class Job(Base):
@@ -34,7 +34,7 @@ class Job(Base):
     is_active = Column(Boolean, default=True, index=True)
     
     # Additional fields (skills, requirements, etc.)
-    metadata = Column(JSON, default=dict)
+    job_metadata = Column(JSON, default=dict)
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -5,7 +5,7 @@ from typing import List
 import yaml
 from pathlib import Path
 
-from backend.app.fetchers.base import BaseFetcher, JobData
+from app.fetchers.base import BaseFetcher, JobData
 
 logger = logging.getLogger(__name__)
 
