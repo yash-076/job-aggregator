@@ -4,6 +4,8 @@ from pathlib import Path
 from backend.app.fetchers.base import JobData
 from backend.app.fetchers.career_page import CareerPageFetcher
 from backend.app.fetchers.platform import LinkedInFetcher
+from backend.app.services.normalizer import normalize, NormalizedJob
+from backend.app.services.dedup_service import DedupService
 
 logger = logging.getLogger(__name__)
 
@@ -92,3 +94,22 @@ class FetcherService:
         
         logger.warning(f"Source not found: {source}")
         return []
+
+    async def fetch_normalized_unique(self, include_platform: bool = True) -> List[NormalizedJob]:
+        """
+        Phase 3: Fetch, normalize, and deduplicate jobs using Redis.
+        Returns a list of unique normalized jobs ready for storage.
+        """
+        raw_jobs = await self.fetch_all(include_platform=include_platform)
+        dedup = DedupService()
+        unique: List[NormalizedJob] = []
+
+        for job in raw_jobs:
+            nj = normalize(job)
+            # Check dedup using Redis TTL-backed memory
+            if not await dedup.is_duplicate(nj.dedup_hash):
+                unique.append(nj)
+                await dedup.mark_seen(nj.dedup_hash)
+
+        logger.info(f"Normalized {len(raw_jobs)} jobs -> {len(unique)} unique jobs")
+        return unique
