@@ -1,5 +1,6 @@
-from typing import Optional, List
-from pydantic import BaseModel
+from typing import Optional, List, Dict
+from datetime import datetime
+from pydantic import BaseModel, EmailStr
 
 
 class JobResponse(BaseModel):
@@ -30,3 +31,41 @@ class JobListResponse(BaseModel):
     skip: int
     limit: int
     has_more: bool
+
+
+# Alert Schemas
+
+class AlertFilters(BaseModel):
+    """Filter criteria for job alerts."""
+    title: Optional[str] = None
+    company: Optional[str] = None
+    location: Optional[str] = None
+    job_type: Optional[str] = None
+
+
+class AlertCreate(BaseModel):
+    """Create new alert."""
+    email: EmailStr
+    name: str
+    filters: AlertFilters = AlertFilters()
+
+
+class AlertUpdate(BaseModel):
+    """Update existing alert."""
+    name: Optional[str] = None
+    filters: Optional[AlertFilters] = None
+    is_active: Optional[bool] = None
+
+
+class AlertResponse(BaseModel):
+    """Alert response."""
+    id: int
+    email: str
+    name: str
+    filters: Dict
+    is_active: bool
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True

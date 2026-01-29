@@ -14,7 +14,7 @@ class FetcherService:
     Orchestrates job fetching from multiple sources.
     """
 
-    def __init__(self, config_dir: str = "backend/app/configs/companies"):
+    def __init__(self, config_dir: str = "app/configs/companies"):
         self.config_dir = Path(config_dir)
 
     async def fetch_all(self, include_platform: bool = True) -> List[JobData]:

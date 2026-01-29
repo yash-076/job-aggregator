@@ -2,14 +2,21 @@
 """
 Fetch jobs from all sources, normalize, deduplicate, and save to database.
 """
+import sys
+from pathlib import Path
+
+# Add parent directory to Python path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import asyncio
 import logging
 from sqlalchemy.orm import Session
 
-from backend.app.core.database import SessionLocal, engine, Base
-from backend.app.core.config import settings
-from backend.app.services.fetcher_service import FetcherService
-from backend.app.services.job_repository import JobRepository
+from app.core.database import SessionLocal, engine, Base
+from app.core.config import settings
+from app.services.fetcher_service import FetcherService
+from app.services.job_repository import JobRepository
+from app.services.alert_service import AlertService
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
@@ -34,8 +41,15 @@ async def main():
     db: Session = SessionLocal()
     try:
         repo = JobRepository(db)
-        saved_count = repo.save_jobs_batch(jobs)
+        saved_count, saved_jobs = repo.save_jobs_batch(jobs)
         logger.info(f"Saved {saved_count} jobs to database")
+        
+        # Check alerts and send notifications
+        if saved_count > 0 and saved_jobs:
+            logger.info("Checking alerts...")
+            alert_service = AlertService(db)
+            notifications_sent = alert_service.check_and_notify(saved_jobs)
+            logger.info(f"Sent {notifications_sent} alert notifications")
     finally:
         db.close()
 

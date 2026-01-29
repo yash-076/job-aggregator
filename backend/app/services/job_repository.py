@@ -60,20 +60,22 @@ class JobRepository:
         self.db.refresh(db_job)
         return db_job
 
-    def save_jobs_batch(self, jobs: List[NormalizedJob]) -> int:
+    def save_jobs_batch(self, jobs: List[NormalizedJob]) -> tuple[int, List[Job]]:
         """
         Batch save multiple normalized jobs.
-        Returns count of inserted/updated jobs.
+        Returns (count, list_of_saved_jobs).
         """
         count = 0
+        saved_jobs = []
         for job in jobs:
             try:
-                self.save_job(job)
+                saved_job = self.save_job(job)
+                saved_jobs.append(saved_job)
                 count += 1
             except Exception as e:
                 logger.error(f"Error saving job {job.title}: {e}")
                 continue
-        return count
+        return count, saved_jobs
 
     def get_job_by_id(self, job_id: int) -> Optional[Job]:
         """Get job by ID."""

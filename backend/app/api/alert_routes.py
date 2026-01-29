@@ -1,0 +1,94 @@
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+from typing import List
+
+from app.core.database import get_db
+from app.models.alert_model import UserAlert
+from app.api.schemas import AlertCreate, AlertUpdate, AlertResponse
+
+router = APIRouter(prefix="/alerts", tags=["alerts"])
+
+@router.post("", response_model=AlertResponse, status_code=201)
+async def create_alert( alert_data: AlertCreate, db: Session = Depends(get_db), ) -> AlertResponse:
+    """
+    Create a new job alert.
+    """
+    db_alert = UserAlert(
+        email=alert_data.email,
+        name=alert_data.name,
+        filters=alert_data.filters.model_dump(exclude_none=True),
+        is_active=True,
+    )
+    db.add(db_alert)
+    db.commit()
+    db.refresh(db_alert)
+    
+    return AlertResponse.model_validate(db_alert)
+
+
+@router.get("", response_model=List[AlertResponse])
+async def list_alerts( email: str = Query(..., description="Filter alerts by email"), db: Session = Depends(get_db), ) -> List[AlertResponse]:
+    """
+    Get all alerts for a specific email.
+    """
+    alerts = db.query(UserAlert).filter_by(email=email).all()
+    return [AlertResponse.model_validate(alert) for alert in alerts]
+
+
+@router.get("/{alert_id}", response_model=AlertResponse)
+async def get_alert(
+    alert_id: int,
+    db: Session = Depends(get_db),
+) -> AlertResponse:
+    """
+    Get a specific alert by ID.
+    """
+    alert = db.query(UserAlert).filter_by(id=alert_id).first()
+    
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    
+    return AlertResponse.model_validate(alert)
+
+
+@router.put("/{alert_id}", response_model=AlertResponse)
+async def update_alert( alert_id: int, alert_data: AlertUpdate, db: Session = Depends(get_db), ) -> AlertResponse:
+    """
+    Update an existing alert.
+    """
+    alert = db.query(UserAlert).filter_by(id=alert_id).first()
+    
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    
+    # Update fields if provided
+    if alert_data.name is not None:
+        alert.name = alert_data.name
+    if alert_data.filters is not None:
+        alert.filters = alert_data.filters.model_dump(exclude_none=True)
+    if alert_data.is_active is not None:
+        alert.is_active = alert_data.is_active
+    
+    db.commit()
+    db.refresh(alert)
+    
+    return AlertResponse.model_validate(alert)
+
+
+@router.delete("/{alert_id}", status_code=204)
+async def delete_alert(
+    alert_id: int,
+    db: Session = Depends(get_db),
+):
+    """
+    Delete an alert.
+    """
+    alert = db.query(UserAlert).filter_by(id=alert_id).first()
+    
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    
+    db.delete(alert)
+    db.commit()
+    
+    return "Alert Deleted Successfully"
