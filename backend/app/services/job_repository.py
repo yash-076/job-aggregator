@@ -31,10 +31,8 @@ class JobRepository:
             existing.location = job.location
             existing.job_type = job.job_type
             existing.description = job.description
-            existing.source_url = job.source_url
+            existing.source_url = job.apply_link
             existing.source = job.source
-            existing.posted_date = job.posted_date
-            existing.expires_date = job.expires_date
             existing.metadata = job.metadata
             existing.is_active = True
             self.db.commit()
@@ -47,11 +45,9 @@ class JobRepository:
             location=job.location,
             job_type=job.job_type,
             description=job.description,
-            source_url=job.source_url,
+            source_url=job.apply_link,
             source=job.source,
             dedup_hash=job.dedup_hash,
-            posted_date=job.posted_date,
-            expires_date=job.expires_date,
             metadata=job.metadata,
             is_active=True,
         )

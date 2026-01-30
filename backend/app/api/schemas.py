@@ -69,3 +69,18 @@ class AlertResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Resume Match Schemas
+
+class JobMatchResponse(BaseModel):
+    """Single job with match score."""
+    job: JobResponse
+    match_score: int
+    matched_keywords: int
+
+
+class ResumeMatchResponse(BaseModel):
+    """Resume matching results."""
+    total_jobs_scored: int
+    top_matches: List[JobMatchResponse]

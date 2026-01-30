@@ -5,18 +5,14 @@ from pydantic import BaseModel
 
 class JobData(BaseModel):
     """
-    Normalized job data schema.
+    Unified raw job format.
     """
-    title: str
+    title: str | None
     company: str
     location: str | None = None
-    job_type: str  # internship, full-time, contract
     description: str | None = None
-    source_url: str
-    source: str  # e.g., "google_careers", "linkedin"
-    posted_date: str | None = None
-    expires_date: str | None = None
-    metadata: dict = {}
+    apply_link: str | None = None
+    source: str  # e.g., "career_page", "adzuna_api"
 
 
 class BaseFetcher(ABC):

@@ -6,6 +6,7 @@ from app.core.database import engine, Base
 from app.core.config import settings
 from app.api.job_routes import router as jobs_router
 from app.api.alert_routes import router as alerts_router
+from app.api.match_routes import router as match_router
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
@@ -34,6 +35,7 @@ app = FastAPI(
 # Include routers
 app.include_router(jobs_router)
 app.include_router(alerts_router)
+app.include_router(match_router)
 
 
 @app.get("/")

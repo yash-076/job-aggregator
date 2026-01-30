@@ -30,7 +30,7 @@ async def main():
     # Fetch normalized, unique jobs
     fetcher = FetcherService()
     logger.info("Fetching jobs...")
-    jobs = await fetcher.fetch_normalized_unique(include_platform=False)
+    jobs = await fetcher.fetch_normalized_unique()
     logger.info(f"Fetched {len(jobs)} unique jobs")
 
     if not jobs:

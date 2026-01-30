@@ -12,6 +12,12 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     from_email: str = ""
+
+    # Adzuna API settings
+    adzuna_app_id: str = ""
+    adzuna_app_key: str = ""
+    adzuna_country: str = ""
+    adzuna_base_url: str = "https://api.adzuna.com/v1/api"
     
     class Config:
         env_file = str(Path(__file__).parent.parent / ".env")

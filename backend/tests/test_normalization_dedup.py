@@ -13,26 +13,24 @@ async def _demo():
         title="Software Engineer",
         company="Acme Corp",
         location="San Francisco, CA",
-        job_type="Full Time",
         description="Build things",
-        source_url="https://jobs.example.com/listing/123?utm_source=abc",
-        source="example_platform",
+        apply_link="https://jobs.example.com/listing/123?utm_source=abc",
+        source="career_page",
     )
 
     job2 = JobData(
         title="Software   Engineer",
         company="Acme Corp",
         location="San Francisco, CA",
-        job_type="full-time",
         description="Build things",
-        source_url="https://jobs.example.com/listing/123?utm_campaign=xyz",
-        source="example_platform",
+        apply_link="https://jobs.example.com/listing/123?utm_campaign=xyz",
+        source="career_page",
     )
 
     n1 = normalize(job1)
     n2 = normalize(job2)
 
-    assert n1.source_url == n2.source_url  # canonicalized
+    assert n1.apply_link == n2.apply_link  # canonicalized
     assert n1.dedup_hash == n2.dedup_hash  # same content -> same hash
 
     dedup = DedupService(ttl_seconds=60)

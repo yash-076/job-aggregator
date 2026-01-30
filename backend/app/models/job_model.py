@@ -22,7 +22,7 @@ class Job(Base):
     # URL to original posting
     source_url = Column(String(512), unique=True, nullable=False)
     
-    # Source identifier (e.g., "google_careers", "linkedin")
+    # Source identifier (e.g., "career_page", "adzuna_api")
     source = Column(String(100), nullable=False, index=True)
     
     # Deduplication hash

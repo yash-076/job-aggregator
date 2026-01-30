@@ -3,7 +3,7 @@ from typing import List
 from pathlib import Path
 from app.fetchers.base import JobData
 from app.fetchers.career_page import CareerPageFetcher
-from app.fetchers.platform import LinkedInFetcher
+from app.fetchers.adzuna_api import AdzunaApiFetcher
 from app.services.normalizer import normalize, NormalizedJob
 from app.services.dedup_service import DedupService
 
@@ -17,9 +17,9 @@ class FetcherService:
     def __init__(self, config_dir: str = "app/configs/companies"):
         self.config_dir = Path(config_dir)
 
-    async def fetch_all(self, include_platform: bool = True) -> List[JobData]:
+    async def fetch_all(self) -> List[JobData]:
         """
-        Fetch jobs from all configured career pages and optionally platforms.
+        Fetch jobs from all configured career pages and public APIs.
         """
         all_jobs = []
 
@@ -28,11 +28,9 @@ class FetcherService:
         all_jobs.extend(career_page_jobs)
         logger.info(f"Fetched {len(career_page_jobs)} jobs from career pages")
 
-        # Fetch from platforms
-        if include_platform:
-            platform_jobs = await self._fetch_from_platforms()
-            all_jobs.extend(platform_jobs)
-            logger.info(f"Fetched {len(platform_jobs)} jobs from platforms")
+        api_jobs = await self._fetch_from_public_apis()
+        all_jobs.extend(api_jobs)
+        logger.info(f"Fetched {len(api_jobs)} jobs from public APIs")
 
         return all_jobs
 
@@ -61,45 +59,27 @@ class FetcherService:
 
         return jobs
 
-    async def _fetch_from_platforms(self) -> List[JobData]:
+    async def _fetch_from_public_apis(self) -> List[JobData]:
         """
-        Fetch from job platforms (LinkedIn, etc.).
+        Fetch from public job APIs (e.g., Adzuna).
         """
-        jobs = []
+        jobs: List[JobData] = []
 
         try:
-            linkedin_fetcher = LinkedInFetcher(keywords="software engineer")
-            linkedin_jobs = await linkedin_fetcher.fetch()
-            jobs.extend(linkedin_jobs)
-            logger.info(f"Fetched {len(linkedin_jobs)} jobs from LinkedIn")
+            adzuna = AdzunaApiFetcher(query="software engineer")
+            adzuna_jobs = await adzuna.fetch()
+            jobs.extend(adzuna_jobs)
         except Exception as e:
-            logger.error(f"Error fetching from LinkedIn: {e}")
+            logger.error(f"Error fetching from Adzuna API: {e}")
 
         return jobs
 
-    async def fetch_by_source(self, source: str) -> List[JobData]:
-        """
-        Fetch jobs from a specific source.
-        """
-        if source == "linkedin":
-            fetcher = LinkedInFetcher()
-            return await fetcher.fetch()
-        
-        # Try to load from career page config
-        config_file = self.config_dir / f"{source}.yaml"
-        if config_file.exists():
-            fetcher = CareerPageFetcher(str(config_file))
-            return await fetcher.fetch()
-        
-        logger.warning(f"Source not found: {source}")
-        return []
-
-    async def fetch_normalized_unique(self, include_platform: bool = True) -> List[NormalizedJob]:
+    async def fetch_normalized_unique(self) -> List[NormalizedJob]:
         """
         Phase 3: Fetch, normalize, and deduplicate jobs using Redis.
         Returns a list of unique normalized jobs ready for storage.
         """
-        raw_jobs = await self.fetch_all(include_platform=include_platform)
+        raw_jobs = await self.fetch_all()
         dedup = DedupService()
         unique: List[NormalizedJob] = []
 

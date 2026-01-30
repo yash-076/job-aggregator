@@ -1,12 +1,11 @@
 company: "Google"
-base_url: "https://www.google.com"
-job_url: "https://www.google.com/careers/jobs/results/"
+base_url: "https://careers.google.com"
+job_url: "https://careers.google.com/jobs/results/"
 source: "google_careers"
 
 selectors:
   job_container: "div.gc-joblisting"
   title: "h2.gc-job-title"
   location: "span.gc-job-location"
-  job_type: "span.gc-job-type"
   link: "a.gc-job-link"
   description: "div.gc-job-description"

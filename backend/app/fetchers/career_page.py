@@ -26,7 +26,7 @@ class CareerPageFetcher(BaseFetcher):
         self.base_url = self.config.get('base_url')
         self.job_url = self.config.get('job_url')
         self.selectors = self.config.get('selectors', {})
-        self.source = self.config.get('source', self.company.lower().replace(' ', '_'))
+        self.source = "career_page"
 
     async def fetch(self) -> List[JobData]:
         """
@@ -35,7 +35,7 @@ class CareerPageFetcher(BaseFetcher):
         jobs = []
         
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
                 response = await client.get(self.job_url)
                 response.raise_for_status()
                 
@@ -65,7 +65,6 @@ class CareerPageFetcher(BaseFetcher):
         try:
             title_elem = element.select_one(self.selectors.get('title', ''))
             location_elem = element.select_one(self.selectors.get('location', ''))
-            job_type_elem = element.select_one(self.selectors.get('job_type', ''))
             link_elem = element.select_one(self.selectors.get('link', ''))
             description_elem = element.select_one(self.selectors.get('description', ''))
             
@@ -74,38 +73,24 @@ class CareerPageFetcher(BaseFetcher):
             
             title = title_elem.get_text(strip=True)
             location = location_elem.get_text(strip=True) if location_elem else None
-            job_type = job_type_elem.get_text(strip=True) if job_type_elem else "full-time"
-            source_url = link_elem.get('href', '')
+            apply_link = link_elem.get('href', '')
             description = description_elem.get_text(strip=True) if description_elem else None
             
             # Make absolute URL if needed
-            if source_url and not source_url.startswith('http'):
-                source_url = self.base_url.rstrip('/') + '/' + source_url.lstrip('/')
+            if apply_link and not apply_link.startswith('http'):
+                apply_link = self.base_url.rstrip('/') + '/' + apply_link.lstrip('/')
             
             return JobData(
                 title=title,
                 company=self.company,
                 location=location,
-                job_type=self._normalize_job_type(job_type),
                 description=description,
-                source_url=source_url,
+                apply_link=apply_link,
                 source=self.source,
-                metadata={'raw_job_type': job_type}
             )
         
         except Exception as e:
             logger.debug(f"Error parsing job element: {e}")
             return None
 
-    def _normalize_job_type(self, raw_type: str) -> str:
-        """
-        Normalize job type to standard values.
-        """
-        raw_type = raw_type.lower().strip()
-        
-        if 'intern' in raw_type:
-            return 'internship'
-        elif 'contract' in raw_type or 'temporary' in raw_type:
-            return 'contract'
-        else:
-            return 'full-time'
+    

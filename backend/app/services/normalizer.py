@@ -13,10 +13,8 @@ class NormalizedJob(BaseModel):
     location: Optional[str] = None
     job_type: str
     description: Optional[str] = None
-    source_url: str
+    apply_link: Optional[str] = None
     source: str
-    posted_date: Optional[str] = None
-    expires_date: Optional[str] = None
     metadata: dict = {}
     dedup_hash: str
 
@@ -35,7 +33,7 @@ def _canonical_url(url: str) -> str:
         return url
 
 
-def _normalize_job_type(raw: str) -> str:
+def _normalize_job_type(raw: str | None) -> str:
     s = (raw or "").lower().strip()
     if "intern" in s:
         return "internship"
@@ -50,39 +48,35 @@ def _hash_components(*parts: str) -> str:
 
 
 def compute_dedup_hash(job: JobData) -> str:
-    title = _normalize_whitespace(job.title)
+    title = _normalize_whitespace(job.title or "") or "unknown"
     company = _normalize_whitespace(job.company)
     location = _normalize_whitespace(job.location or "")
-    job_type = _normalize_job_type(job.job_type)
-    url = _canonical_url(job.source_url)
-    return _hash_components(title, company, location, job_type, url)
+    url = _canonical_url(job.apply_link or "")
+    return _hash_components(title, company, location, url)
 
 
 def normalize(job: JobData) -> NormalizedJob:
-    title = _normalize_whitespace(job.title)
+    title = _normalize_whitespace(job.title or "") or "Unknown"
     company = _normalize_whitespace(job.company)
     location = _normalize_whitespace(job.location or "") or None
-    job_type = _normalize_job_type(job.job_type)
-    url = _canonical_url(job.source_url)
+    url = _canonical_url(job.apply_link or "") or None
 
     dedup_hash = compute_dedup_hash(job)
 
-    metadata = dict(job.metadata or {})
-    metadata.update({
+    apply_link = url or f"synthetic:{dedup_hash}"
+
+    metadata = {
         "canonical_url": url,
-        "raw_job_type": job.metadata.get("raw_job_type") if job.metadata else None,
-    })
+    }
 
     return NormalizedJob(
         title=title,
         company=company,
         location=location,
-        job_type=job_type,
+        job_type="full-time",
         description=job.description,
-        source_url=url,
+        apply_link=apply_link,
         source=job.source,
-        posted_date=job.posted_date,
-        expires_date=job.expires_date,
         metadata=metadata,
         dedup_hash=dedup_hash,
     )

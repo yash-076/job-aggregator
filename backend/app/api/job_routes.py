@@ -15,7 +15,7 @@ async def search_jobs(
     company: Optional[str] = Query(None, description="Company filter"),
     location: Optional[str] = Query(None, description="Location filter"),
     job_type: Optional[str] = Query(None, description="Job type (internship, full-time, contract)"),
-    source: Optional[str] = Query(None, description="Source (e.g., google_careers, linkedin)"),
+    source: Optional[str] = Query(None, description="Source (e.g., career_page, adzuna_api)"),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: Session = Depends(get_db),
