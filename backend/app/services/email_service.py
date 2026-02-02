@@ -77,7 +77,7 @@ class EmailService:
                 <p><strong>Location:</strong> {job.location or 'N/A'}</p>
                 <p><strong>Type:</strong> {job.job_type}</p>
                 <p><strong>Source:</strong> {job.source}</p>
-                <p><a href="{job.source_url}" target="_blank">View Job</a></p>
+                <p><a href="{job.apply_link}" target="_blank">View Job</a></p>
             </div>
             <hr>
             """

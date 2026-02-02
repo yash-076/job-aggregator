@@ -34,7 +34,7 @@ async def fetch_and_save_job():
             
             for job in unique_jobs:
                 try:
-                    repo.create_job(job)
+                    repo.save_job(job)
                     saved_count += 1
                 except Exception as e:
                     logger.error(f"Error saving job {job.title}: {e}")

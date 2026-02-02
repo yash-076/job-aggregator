@@ -8,7 +8,6 @@ from app.services.normalizer import NormalizedJob
 
 logger = logging.getLogger(__name__)
 
-
 class JobRepository:
     """
     Service layer for job database operations.
@@ -31,9 +30,9 @@ class JobRepository:
             existing.location = job.location
             existing.job_type = job.job_type
             existing.description = job.description
-            existing.source_url = job.apply_link
-            existing.source = job.source
-            existing.metadata = job.metadata
+            existing.apply_link = job.apply_link
+            existing.source = job.source,
+            existing.job_metadata = job.job_metadata,
             existing.is_active = True
             self.db.commit()
             return existing
@@ -45,10 +44,10 @@ class JobRepository:
             location=job.location,
             job_type=job.job_type,
             description=job.description,
-            source_url=job.apply_link,
+            apply_link=job.apply_link,
             source=job.source,
             dedup_hash=job.dedup_hash,
-            metadata=job.metadata,
+            job_metadata=job.job_metadata,
             is_active=True,
         )
         self.db.add(db_job)

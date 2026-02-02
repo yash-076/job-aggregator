@@ -15,7 +15,7 @@ class NormalizedJob(BaseModel):
     description: Optional[str] = None
     apply_link: Optional[str] = None
     source: str
-    metadata: dict = {}
+    job_metadata: dict = {}
     dedup_hash: str
 
 
@@ -59,14 +59,15 @@ def normalize(job: JobData) -> NormalizedJob:
     title = _normalize_whitespace(job.title or "") or "Unknown"
     company = _normalize_whitespace(job.company)
     location = _normalize_whitespace(job.location or "") or None
-    url = _canonical_url(job.apply_link or "") or None
+    canonical_url = _canonical_url(job.apply_link or "") or None
 
     dedup_hash = compute_dedup_hash(job)
 
-    apply_link = url or f"synthetic:{dedup_hash}"
+    # Use full URL with query parameters for apply_link
+    apply_link = job.apply_link or f"synthetic:{dedup_hash}"
 
     metadata = {
-        "canonical_url": url,
+        "canonical_url": canonical_url,
     }
 
     return NormalizedJob(
@@ -77,6 +78,6 @@ def normalize(job: JobData) -> NormalizedJob:
         description=job.description,
         apply_link=apply_link,
         source=job.source,
-        metadata=metadata,
+        job_metadata=metadata,
         dedup_hash=dedup_hash,
     )

@@ -11,10 +11,8 @@ class JobResponse(BaseModel):
     location: Optional[str] = None
     job_type: str
     description: Optional[str] = None
-    source_url: str
+    apply_link: str
     source: str
-    posted_date: Optional[datetime] = None
-    expires_date: Optional[datetime] = None
     is_active: bool
     job_metadata: dict = {}
     created_at: datetime

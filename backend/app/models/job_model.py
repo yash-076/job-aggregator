@@ -20,7 +20,7 @@ class Job(Base):
     description = Column(Text)
     
     # URL to original posting
-    source_url = Column(String(512), unique=True, nullable=False)
+    apply_link = Column(String(2048), unique=True, nullable=False)
     
     # Source identifier (e.g., "career_page", "adzuna_api")
     source = Column(String(100), nullable=False, index=True)

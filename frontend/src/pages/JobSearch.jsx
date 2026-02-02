@@ -90,7 +90,7 @@ export function JobSearch() {
                 {job.job_type}
               </p>
               <a
-                href={job.source_url}
+                href={job.apply_link}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline block mt-2"
