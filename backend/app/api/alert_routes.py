@@ -12,7 +12,16 @@ router = APIRouter(prefix="/alerts", tags=["alerts"])
 async def create_alert( alert_data: AlertCreate, db: Session = Depends(get_db), ) -> AlertResponse:
     """
     Create a new job alert.
+    Max 5 alerts per email.
     """
+    # Check existing alerts for this email
+    existing_count = db.query(UserAlert).filter_by(email=alert_data.email).count()
+    if existing_count >= 5:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum 5 alerts allowed per email. Current count: {existing_count}"
+        )
+
     db_alert = UserAlert(
         email=alert_data.email,
         name=alert_data.name,

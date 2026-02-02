@@ -13,12 +13,12 @@ class JobResponse(BaseModel):
     description: Optional[str] = None
     source_url: str
     source: str
-    posted_date: Optional[str] = None
-    expires_date: Optional[str] = None
+    posted_date: Optional[datetime] = None
+    expires_date: Optional[datetime] = None
     is_active: bool
-    metadata: dict = {}
-    created_at: str
-    updated_at: Optional[str] = None
+    job_metadata: dict = {}
+    created_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

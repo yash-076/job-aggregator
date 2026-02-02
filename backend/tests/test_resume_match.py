@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.services.resume_parser import ResumeParser
 
@@ -36,8 +36,8 @@ if __name__ == "__main__" and len(sys.argv) > 1:
     text = ResumeParser.extract_text(pdf_path)
     print(f"Extracted {len(text)} characters")
     print("\nFirst 500 characters:")
-    print(text[:500])
+    print(text[:1000])
     print("\nKeywords:")
     keywords = ResumeParser.extract_keywords(text)
     print(f"Found {len(keywords)} keywords")
-    print(sorted(keywords)[:30])
+    print(sorted(keywords)[:])

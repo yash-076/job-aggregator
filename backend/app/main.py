@@ -4,6 +4,7 @@ import logging
 
 from app.core.database import engine, Base
 from app.core.config import settings
+from app.core.scheduler import start_background_scheduler, stop_background_scheduler
 from app.api.job_routes import router as jobs_router
 from app.api.alert_routes import router as alerts_router
 from app.api.match_routes import router as match_router
@@ -15,14 +16,18 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Startup: create tables if not exist.
-    Shutdown: cleanup if needed.
+    Startup: create tables if not exist, start background scheduler.
+    Shutdown: cleanup and stop scheduler.
     """
     logger.info("Starting up...")
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables ensured.")
+    start_background_scheduler()
+    logger.info("Background scheduler started.")
     yield
     logger.info("Shutting down...")
+    stop_background_scheduler()
+    logger.info("Background scheduler stopped.")
 
 
 app = FastAPI(
