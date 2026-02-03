@@ -3,7 +3,8 @@ services:
     name: job-aggregator-db
     plan: free
     ipAllowList: []
-    version: 15
+    postgreSQL:
+      version: 15
 
   - type: redis
     name: job-aggregator-redis
