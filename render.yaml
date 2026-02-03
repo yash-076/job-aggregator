@@ -1,0 +1,50 @@
+services:
+  - type: pserv
+    name: job-aggregator-db
+    plan: free
+    ipAllowList: []
+    postgreSQL:
+      version: 15
+      plan: free
+
+  - type: redis
+    name: job-aggregator-redis
+    plan: free
+    ipAllowList: []
+
+  - type: web
+    name: job-aggregator-api
+    plan: free
+    runtime: python
+    runtimeVersion: "3.11"
+    buildCommand: "cd backend && pip install -r requirements.txt && python -m app.core.init_db"
+    startCommand: "cd backend && gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000"
+    envVars:
+      - key: DATABASE_URL
+        fromService:
+          name: job-aggregator-db
+          type: pserv
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: job-aggregator-redis
+          type: redis
+          property: connectionString
+      - key: LOG_LEVEL
+        value: INFO
+      - key: SMTP_HOST
+        scope: FG
+      - key: SMTP_PORT
+        scope: FG
+      - key: SMTP_USER
+        scope: FG
+      - key: SMTP_PASSWORD
+        scope: FG
+      - key: FROM_EMAIL
+        scope: FG
+      - key: ADZUNA_APP_ID
+        scope: FG
+      - key: ADZUNA_APP_KEY
+        scope: FG
+      - key: ADZUNA_COUNTRY
+        value: us
