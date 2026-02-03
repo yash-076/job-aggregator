@@ -14,7 +14,7 @@ class JobResponse(BaseModel):
     apply_link: str
     source: str
     is_active: bool
-    job_metadata: dict = {}
+    job_metadata: Dict = {}
     created_at: datetime
     updated_at: Optional[datetime] = None
 

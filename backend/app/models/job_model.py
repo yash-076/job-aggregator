@@ -34,7 +34,7 @@ class Job(Base):
     is_active = Column(Boolean, default=True, index=True)
     
     # Additional fields (skills, requirements, etc.)
-    job_metadata = Column(JSON, default=dict)
+    job_metadata = Column(JSON, default=lambda: {})
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

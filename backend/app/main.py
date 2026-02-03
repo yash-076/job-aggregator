@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 import logging
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.database import engine, Base
 from app.core.config import settings
@@ -35,6 +36,16 @@ app = FastAPI(
     description="Backend for job aggregation platform",
     version="0.1.0",
     lifespan=lifespan,
+)
+
+# Enable CORS for all origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins
+    # allow_origins=["http://localhost:3000", "https://yourdomain.com"],
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allow all headers
 )
 
 # Include routers

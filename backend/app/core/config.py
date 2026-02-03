@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     adzuna_app_key: str = ""
     adzuna_country: str = ""
     adzuna_base_url: str = "https://api.adzuna.com/v1/api"
+    adzuna_job_queries: str = "software engineer,python developer,data scientist"  # comma-separated
     
     class Config:
         env_file = str(Path(__file__).parent.parent / ".env")

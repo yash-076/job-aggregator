@@ -62,15 +62,24 @@ class FetcherService:
     async def _fetch_from_public_apis(self) -> List[JobData]:
         """
         Fetch from public job APIs (e.g., Adzuna).
+        Supports multiple job queries from config.
         """
+        from app.core.config import settings
+        
         jobs: List[JobData] = []
-
-        try:
-            adzuna = AdzunaApiFetcher(query="software engineer")
-            adzuna_jobs = await adzuna.fetch()
-            jobs.extend(adzuna_jobs)
-        except Exception as e:
-            logger.error(f"Error fetching from Adzuna API: {e}")
+        
+        # Parse queries from config (comma-separated)
+        queries = [q.strip() for q in settings.adzuna_job_queries.split(",") if q.strip()]
+        
+        for query in queries:
+            try:
+                logger.info(f"Fetching Adzuna jobs for: {query}")
+                adzuna = AdzunaApiFetcher(query=query)
+                adzuna_jobs = await adzuna.fetch()
+                jobs.extend(adzuna_jobs)
+                logger.info(f"Fetched {len(adzuna_jobs)} jobs for query '{query}'")
+            except Exception as e:
+                logger.error(f"Error fetching from Adzuna API for query '{query}': {e}")
 
         return jobs
 
