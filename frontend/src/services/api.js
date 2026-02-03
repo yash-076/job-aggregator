@@ -1,30 +1,66 @@
 const API_BASE = '/api';
+const REQUEST_TIMEOUT = 30000; // 30 seconds
+
+/**
+ * Enhanced fetch with error handling, timeouts, and consistent error messages
+ */
+async function fetchWithErrorHandling(url, options = {}) {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.detail || errorData.message || `Error: ${response.statusText}`;
+      throw new Error(errorMessage);
+    }
+
+    return await response.json();
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out. Please try again.');
+    }
+    throw error;
+  }
+}
 
 const api = {
   // Jobs
   searchJobs: (params) => {
     const query = new URLSearchParams(params).toString();
-    return fetch(`${API_BASE}/jobs?${query}`).then(r => r.json());
+    return fetchWithErrorHandling(`${API_BASE}/jobs?${query}`);
   },
-  getJobDetail: (id) => fetch(`${API_BASE}/jobs/${id}`).then(r => r.json()),
+
+  getJobDetail: (id) => fetchWithErrorHandling(`${API_BASE}/jobs/${id}`),
 
   // Alerts
-  createAlert: (data) => fetch(`${API_BASE}/alerts`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  }).then(r => r.json()),
-  getAlerts: (email) => fetch(`${API_BASE}/alerts?email=${email}`).then(r => r.json()),
-  deleteAlert: (id) => fetch(`${API_BASE}/alerts/${id}`, { method: 'DELETE' }),
+  createAlert: (data) =>
+    fetchWithErrorHandling(`${API_BASE}/alerts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }),
+
+  getAlerts: (email) => fetchWithErrorHandling(`${API_BASE}/alerts?email=${email}`),
+
+  deleteAlert: (id) =>
+    fetchWithErrorHandling(`${API_BASE}/alerts/${id}`, { method: 'DELETE' }),
 
   // Resume matching
   matchResume: (file, topN = 20) => {
     const formData = new FormData();
     formData.append('resume', file);
-    return fetch(`${API_BASE}/match/resume?top_n=${topN}`, {
+    return fetchWithErrorHandling(`${API_BASE}/match/resume?top_n=${topN}`, {
       method: 'POST',
       body: formData,
-    }).then(r => r.json());
+    });
   },
 };
 

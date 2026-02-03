@@ -1,36 +1,62 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Header, Nav, Footer } from './components/Layout';
 import { JobSearch } from './pages/JobSearch';
 import { AlertManager } from './pages/AlertManager';
 import { ResumeMatch } from './pages/ResumeMatch';
+import { About } from './pages/About';
+import { Blog } from './pages/Blog';
+import { Contact } from './pages/Contact';
+import { Privacy } from './pages/Privacy';
+import { Terms } from './pages/Terms';
+import { ThemeProvider } from './context/ThemeContext';
 import './index.css';
 
-export default function App() {
-  const [active, setActive] = useState('search');
-
-  const renderPage = () => {
-    switch (active) {
-      case 'search':
-        return <JobSearch />;
-      case 'alerts':
-        return <AlertManager />;
-      case 'resume':
-        return <ResumeMatch />;
-      default:
-        return <JobSearch />;
-    }
-  };
-
+/**
+ * Main App component
+ * Handles page routing with React Router
+ * Follows accessible, semantic HTML practices
+ */
+function AppContent() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <Routes>
+      <Route path="/" element={<JobSearch />} />
+      <Route path="/search" element={<JobSearch />} />
+      <Route path="/alerts" element={<AlertManager />} />
+      <Route path="/resume" element={<ResumeMatch />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/blog" element={<Blog />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
+    </Routes>
+  );
+}
+
+function AppLayout() {
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-slate-950 transition-colors duration-200">
       <Header />
-      <Nav active={active} setActive={setActive} />
-      
-      <main className="flex-1 max-w-6xl mx-auto px-4 py-8 w-full">
-        {renderPage()}
+      <Nav />
+
+      {/* Main Content Area */}
+      <main className="flex-1 w-full">
+        <div className="container-max py-8">
+          <AppContent />
+        </div>
       </main>
 
       <Footer />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <BrowserRouter>
+        <AppLayout />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
