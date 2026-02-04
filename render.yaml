@@ -2,11 +2,12 @@ databases:
   - name: job-aggregator-db
     plan: free
 
-caches:
-  - name: job-aggregator-redis
-    plan: free
-
 services:
+  - type: redis
+    name: job-aggregator-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+
   - type: web
     name: job-aggregator-api
     plan: free
@@ -19,8 +20,9 @@ services:
           name: job-aggregator-db
           property: connectionString
       - key: REDIS_URL
-        fromCache:
+        fromService:
           name: job-aggregator-redis
+          type: redis
           property: connectionString
       - key: LOG_LEVEL
         value: INFO
