@@ -14,14 +14,15 @@ RUN apt-get update \
         libxslt1-dev \
         zlib1g-dev \
         libffi-dev \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir --upgrade pip \
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
     && pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 
 EXPOSE 8000
 
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "app.main:app"]
+CMD ["gunicorn", "--workers=2", "--worker-class=uvicorn.workers.UvicornWorker", "--bind=0.0.0.0:8000", "--timeout=120", "--access-logfile=-", "--error-logfile=-", "app.main:app"]

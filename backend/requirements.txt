@@ -1,6 +1,7 @@
 # FastAPI stack
 fastapi==0.109.0
 uvicorn==0.27.0
+gunicorn==21.2.0
 python-multipart==0.0.22
 
 # Pydantic (v1 – Render safe)
