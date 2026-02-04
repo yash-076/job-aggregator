@@ -2,10 +2,12 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 import logging
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 from app.core.database import engine, Base
 from app.core.config import settings
 from app.core.scheduler import start_background_scheduler, stop_background_scheduler
+from app.core.init_db import init_db
 from app.api.job_routes import router as jobs_router
 from app.api.alert_routes import router as alerts_router
 from app.api.match_routes import router as match_router
@@ -13,22 +15,38 @@ from app.api.match_routes import router as match_router
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
 
+# CORS origins from environment for production flexibility
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000"
+).split(",")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Startup: create tables if not exist, start background scheduler.
+    Startup: create tables, initialize DB, start background scheduler.
     Shutdown: cleanup and stop scheduler.
     """
-    logger.info("Starting up...")
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables ensured.")
-    start_background_scheduler()
-    logger.info("Background scheduler started.")
+    try:
+        logger.info("Starting up...")
+        Base.metadata.create_all(bind=engine)
+        init_db()  # Initialize database schema and seed data
+        logger.info("Database initialized successfully.")
+        start_background_scheduler()
+        logger.info("Background scheduler started.")
+    except Exception as e:
+        logger.error(f"Startup failed: {e}", exc_info=True)
+        raise
+    
     yield
-    logger.info("Shutting down...")
-    stop_background_scheduler()
-    logger.info("Background scheduler stopped.")
+    
+    try:
+        logger.info("Shutting down...")
+        stop_background_scheduler()
+        logger.info("Background scheduler stopped.")
+    except Exception as e:
+        logger.error(f"Shutdown error: {e}", exc_info=True)
 
 
 app = FastAPI(
@@ -38,17 +56,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Enable CORS for all origins
+# Enable CORS with environment-based origins
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins=["*"],  # Allow all origins
-    allow_origins=[
-        "http://localhost:3000",
-        "https://job-aggregator-2eckol59k-yash-076s-projects.vercel.app",
-    ],
+    allow_origins=[origin.strip() for origin in ALLOWED_ORIGINS],
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Include routers
@@ -59,13 +73,11 @@ app.include_router(match_router)
 
 @app.get("/")
 async def default_page():
-    return "Server is Running"
+    """Health check endpoint."""
+    return {"status": "healthy", "message": "Server is Running"}
+
 
 @app.get("/health")
 async def health_check():
+    """Health check for load balancers and monitoring."""
     return {"status": "ok"}
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
