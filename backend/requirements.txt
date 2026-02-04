@@ -1,15 +1,26 @@
+# FastAPI stack
 fastapi==0.109.0
 uvicorn==0.27.0
+python-multipart==0.0.22
+
+# Pydantic (v1 – Render safe)
+pydantic==1.10.13
+pydantic-settings==0.2.5
+email-validator==2.3.0
+
+# Database
 SQLAlchemy==2.0.25
 psycopg2-binary==2.9.9
-pydantic==2.5.3
-pydantic-settings==2.1.0
-email-validator==2.3.0
+
+# Caching / Background jobs
 redis==5.0.1
 APScheduler==3.10.4
+
+# HTTP & scraping
 httpx==0.26.0
 beautifulsoup4==4.12.3
-lxml==5.1.0
+lxml==4.9.4
+
+# Utils
 PyYAML==6.0.1
 pdfplumber==0.10.3
-python-multipart==0.0.22
