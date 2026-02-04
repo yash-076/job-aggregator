@@ -22,6 +22,6 @@ httpx==0.26.0
 beautifulsoup4==4.12.3
 lxml==4.9.4
 
-# Utils (IMPORTANT downgrade)
-PyYAML==5.4.1
+# Utils
+PyYAML==6.0.1
 pdfplumber==0.10.3
