@@ -6,7 +6,6 @@ services:
     plan: free
 
     rootDir: backend
-    env: python
     pythonVersion: 3.11.8
 
 
