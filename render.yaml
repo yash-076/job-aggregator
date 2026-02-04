@@ -1,48 +1,12 @@
-databases:
-  - name: job-aggregator-db
-    plan: free
-    region: singapore
-
 services:
-  - type: redis
-    name: job-aggregator-redis
-    plan: free
-    region: singapore
-    maxmemoryPolicy: noeviction
-    ipAllowList: []
-
   - type: web
-    name: job-aggregator-api
-    plan: free
+    name: job-aggregator-backend
+    env: python
     region: singapore
-    runtime: python
-    buildCommand: "cd backend && pip install -r requirements.txt && python -m app.core.init_db"
-    startCommand: "cd backend && gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000"
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: job-aggregator-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          name: job-aggregator-redis
-          type: redis
-          property: connectionString
-      - key: LOG_LEVEL
-        value: INFO
-      - key: SMTP_HOST
-        value: smtp.gmail.com
-      - key: SMTP_PORT
-        value: "587"
-      - key: SMTP_USER
-        value: ""
-      - key: SMTP_PASSWORD
-        value: ""
-      - key: FROM_EMAIL
-        value: ""
-      - key: ADZUNA_APP_ID
-        value: ""
-      - key: ADZUNA_APP_KEY
-        value: ""
-      - key: ADZUNA_COUNTRY
-        value: us
+    plan: free
+
+    rootDir: backend
+    pythonVersion: 3.11.8
+
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
