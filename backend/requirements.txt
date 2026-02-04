@@ -6,7 +6,7 @@ python-multipart==0.0.22
 
 # Pydantic (v1 – Render safe)
 pydantic==1.10.13
-pydantic-settings==0.2.5
+pydantic-settings==2.1.0
 email-validator==2.3.0
 
 # Database

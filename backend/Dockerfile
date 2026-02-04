@@ -9,6 +9,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
         gcc \
+        python3-dev \
         libpq-dev \
         libxml2-dev \
         libxslt1-dev \
