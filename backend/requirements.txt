@@ -4,8 +4,8 @@ uvicorn==0.27.0
 gunicorn==21.2.0
 python-multipart==0.0.22
 
-# Pydantic (v1 – Render safe)
-pydantic==1.10.13
+# Pydantic (v2)
+pydantic==2.4.2
 pydantic-settings==2.1.0
 email-validator==2.3.0
 
