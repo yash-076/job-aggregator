@@ -26,4 +26,4 @@ COPY app ./app
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--workers=2", "--worker-class=uvicorn.workers.UvicornWorker", "--bind=0.0.0.0:8000", "--timeout=120", "--access-logfile=-", "--error-logfile=-", "app.main:app"]
+CMD ["gunicorn", "--workers=1", "--worker-class=uvicorn.workers.UvicornWorker", "--bind=0.0.0.0:8000", "--timeout=120", "--access-logfile=-", "--error-logfile=-", "app.main:app"]
