@@ -15,7 +15,7 @@ from app.api.match_routes import router as match_router
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
 
-# CORS origins from environment for production flexibility
+# CORS origins from environment
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
     "http://localhost:3000"
