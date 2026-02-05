@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Header, Nav, Footer } from './components/Layout';
 import { JobSearch } from './pages/JobSearch';
@@ -10,6 +10,7 @@ import { Contact } from './pages/Contact';
 import { Privacy } from './pages/Privacy';
 import { Terms } from './pages/Terms';
 import { ThemeProvider } from './context/ThemeContext';
+import api from './services/api';
 import './index.css';
 
 /**
@@ -34,6 +35,17 @@ function AppContent() {
 }
 
 function AppLayout() {
+  // Health check every 14 minutes to keep backend alive on free tier
+  useEffect(() => {
+    // Run health check immediately on mount
+    api.healthCheck();
+
+    // Set up interval for every 14 minutes (840000 ms)
+    const interval = setInterval(api.healthCheck, 14 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-slate-950 transition-colors duration-200">
       <Header />

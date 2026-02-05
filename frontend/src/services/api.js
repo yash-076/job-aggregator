@@ -62,6 +62,16 @@ const api = {
       body: formData,
     });
   },
+
+  // Health check - keeps backend alive on free tier
+  healthCheck: async () => {
+    try {
+      await fetch(`${API_BASE}/health`);
+    } catch (error) {
+      // Silently fail - this is just a keep-alive ping
+      console.debug('Backend health check ping sent');
+    }
+  },
 };
 
 export default api;
