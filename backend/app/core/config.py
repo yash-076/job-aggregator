@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = str(Path(__file__).parent.parent / ".env")
+        extra = "ignore"  # Ignore extra fields
 
 
 settings = Settings()
