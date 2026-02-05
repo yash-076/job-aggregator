@@ -35,13 +35,13 @@ function AppContent() {
 }
 
 function AppLayout() {
-  // Health check every 14 minutes to keep backend alive on free tier
+  // Health check every 10 minutes to keep backend alive on free tier
   useEffect(() => {
     // Run health check immediately on mount
     api.healthCheck();
 
-    // Set up interval for every 14 minutes (840000 ms)
-    const interval = setInterval(api.healthCheck, 14 * 60 * 1000);
+    // Set up interval for every 10 minutes (600000 ms)
+    const interval = setInterval(api.healthCheck, 1 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);
