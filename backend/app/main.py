@@ -4,7 +4,6 @@ import logging
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
-from app.core.database import engine, Base
 from app.core.config import settings
 from app.core.scheduler import start_background_scheduler, stop_background_scheduler
 from app.core.init_db import init_db
@@ -30,8 +29,7 @@ async def lifespan(app: FastAPI):
     """
     try:
         logger.info("Starting up...")
-        Base.metadata.create_all(bind=engine)
-        init_db()  # Initialize database schema and seed data
+        init_db()  # Initialize database schema only if empty
         logger.info("Database initialized successfully.")
         start_background_scheduler()
         logger.info("Background scheduler started.")
