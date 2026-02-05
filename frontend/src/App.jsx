@@ -41,7 +41,7 @@ function AppLayout() {
     api.healthCheck();
 
     // Set up interval for every 10 minutes (600000 ms)
-    const interval = setInterval(api.healthCheck, 1 * 60 * 1000);
+    const interval = setInterval(api.healthCheck, 10 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);
