@@ -13,6 +13,7 @@ export function ResumeMatch() {
   const [matches, setMatches] = useState([]);
   const [totalScored, setTotalScored] = useState(0);
   const [isDragActive, setIsDragActive] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const handleUpload = async () => {
     if (!file) {
@@ -33,10 +34,12 @@ export function ResumeMatch() {
       const data = await api.matchResume(file, 20);
       setMatches(data.top_matches || []);
       setTotalScored(data.total_jobs_scored || 0);
+      setHasSearched(true);
     } catch (err) {
       setError(err.message || 'Failed to upload and analyze resume. Please try again.');
       setMatches([]);
       setTotalScored(0);
+      setHasSearched(false);
     } finally {
       setLoading(false);
     }
@@ -80,6 +83,7 @@ export function ResumeMatch() {
     setMatches([]);
     setTotalScored(0);
     setError('');
+    setHasSearched(false);
   };
 
   // Helper function to get match score color
@@ -192,7 +196,7 @@ export function ResumeMatch() {
       </Card>
 
       {/* Results Section */}
-      {totalScored > 0 && (
+      {hasSearched && (
         <>
           {/* Summary Card */}
           <Card
@@ -317,7 +321,7 @@ export function ResumeMatch() {
       )}
 
       {/* Initial State */}
-      {!loading && totalScored === 0 && !error && (
+      {!loading && !hasSearched && !error && (
         <EmptyState
           title="Ready to find your perfect job match?"
           description="Upload your resume above and we'll analyze it against our entire job database to find the best opportunities for you."
