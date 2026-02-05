@@ -75,7 +75,8 @@ async def default_page():
     return {"status": "healthy", "message": "Server is Running"}
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
-    """Health check for load balancers and monitoring."""
+    """Health check for load balancers and monitoring (supports GET and HEAD)."""
+    return {"status": "ok"}
     return {"status": "ok"}
