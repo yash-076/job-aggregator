@@ -5,6 +5,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from app.services.redis_sync_service import RedisSyncService
 from app.services.fetcher_service import FetcherService
 from app.services.job_repository import JobRepository
+from app.services.alert_service import AlertService
 from app.core.database import SessionLocal
 
 logger = logging.getLogger(__name__)
@@ -29,18 +30,19 @@ async def fetch_and_save_job():
         
         if unique_jobs:
             db = SessionLocal()
-            repo = JobRepository(db)
-            saved_count = 0
-            
-            for job in unique_jobs:
-                try:
-                    repo.save_job(job)
-                    saved_count += 1
-                except Exception as e:
-                    logger.error(f"Error saving job {job.title}: {e}")
-            
-            db.close()
-            logger.info(f"Fetch and save job completed: {saved_count} jobs saved")
+            try:
+                repo = JobRepository(db)
+                saved_count, saved_jobs = repo.save_jobs_batch(unique_jobs)
+                logger.info(f"Fetch and save job completed: {saved_count} jobs saved")
+                
+                # Check alerts and send notifications for new jobs
+                if saved_count > 0 and saved_jobs:
+                    logger.info("Checking alerts...")
+                    alert_service = AlertService(db)
+                    notifications_sent = alert_service.check_and_notify(saved_jobs)
+                    logger.info(f"Sent {notifications_sent} alert notifications")
+            finally:
+                db.close()
         else:
             logger.info("No unique jobs to save")
     except Exception as e:
