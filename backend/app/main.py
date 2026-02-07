@@ -69,13 +69,13 @@ app.include_router(alerts_router)
 app.include_router(match_router)
 
 
-@app.get("/")
+@app.get("/", operation_id="default_page")
 async def default_page():
     """Health check endpoint."""
     return {"status": "healthy", "message": "Server is Running"}
 
 
-@app.api_route("/health", methods=["GET", "HEAD"])
+@app.api_route("/health", methods=["GET", "HEAD"], operation_id="health_check")
 async def health_check():
     """Health check for load balancers and monitoring (supports GET and HEAD)."""
     return {"status": "ok"}
