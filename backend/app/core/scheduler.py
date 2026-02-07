@@ -8,6 +8,7 @@ from app.services.job_repository import JobRepository
 from app.services.alert_service import AlertService
 from app.services.email_service import EmailService
 from app.services.email_queue_service import EmailQueueService
+from app.models.alert_model import UserAlert
 from app.core.database import SessionLocal
 
 logger = logging.getLogger(__name__)
@@ -37,11 +38,21 @@ async def fetch_and_save_job():
                 saved_count, saved_jobs = repo.save_jobs_batch(unique_jobs)
                 logger.info(f"Fetch and save job completed: {saved_count} jobs saved")
                 
-                # Check alerts and queue notifications (non-blocking)
+                # Check alerts and queue notifications (async)
                 if saved_count > 0 and saved_jobs:
                     logger.info("Checking alerts...")
                     alert_service = AlertService(db)
-                    notifications_queued = alert_service.check_and_notify(saved_jobs)
+                    # Get all active alerts
+                    alerts = db.query(UserAlert).filter_by(is_active=True).all()
+                    
+                    notifications_queued = 0
+                    for alert in alerts:
+                        matching_jobs = alert_service._match_jobs_to_alert(alert, saved_jobs)
+                        if matching_jobs:
+                            logger.info(f"Alert '{alert.name}' matched {len(matching_jobs)} jobs")
+                            if await EmailQueueService.queue_email(alert.email, alert.name, matching_jobs):
+                                notifications_queued += 1
+                    
                     logger.info(f"Queued {notifications_queued} alert notifications")
             finally:
                 db.close()
@@ -54,7 +65,7 @@ async def fetch_and_save_job():
 async def process_email_queue_job():
     """Background job to process email queue every 5 minutes."""
     try:
-        queue_size = EmailQueueService.get_queue_size()
+        queue_size = await EmailQueueService.get_queue_size()
         if queue_size == 0:
             return
 
@@ -64,7 +75,7 @@ async def process_email_queue_job():
 
         # Process up to MAX_BATCH_SIZE emails at a time to avoid timeouts
         while processed < EmailQueueService.MAX_BATCH_SIZE:
-            task = EmailQueueService.pop_queue()
+            task = await EmailQueueService.pop_queue()
             if not task:
                 break
 

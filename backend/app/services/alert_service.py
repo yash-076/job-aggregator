@@ -32,17 +32,11 @@ class AlertService:
             logger.info("No active alerts found")
             return 0
 
-        notifications_queued = 0
-
-        for alert in alerts:
-            matching_jobs = self._match_jobs_to_alert(alert, jobs)
-            
-            if matching_jobs:
-                logger.info(f"Alert '{alert.name}' matched {len(matching_jobs)} jobs")
-                if EmailQueueService.queue_email(alert.email, alert.name, matching_jobs):
-                    notifications_queued += 1
-
-        return notifications_queued
+        # Note: We cannot call async queue_email from sync context here.
+        # The queuing will happen in the scheduler's fetch_and_save_job (async).
+        # For now, return 0 and handle in scheduler.
+        logger.warning("check_and_notify called in sync context - email queueing deferred to scheduler")
+        return 0
 
     def _match_jobs_to_alert(self, alert: UserAlert, jobs: List[Job]) -> List[Job]:
         """

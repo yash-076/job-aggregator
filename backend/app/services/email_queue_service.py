@@ -1,7 +1,7 @@
 import json
 import logging
 from typing import List
-from app.core.redis import redis_client
+from app.core.redis import redis
 from app.models.job_model import Job
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ class EmailQueueService:
     """
 
     @staticmethod
-    def queue_email(to_email: str, alert_name: str, jobs: List[Job]) -> bool:
+    async def queue_email(to_email: str, alert_name: str, jobs: List[Job]) -> bool:
         """
         Queue an email for sending instead of sending immediately.
         Returns True if queued successfully.
@@ -44,7 +44,7 @@ class EmailQueueService:
             }
 
             # Push to Redis queue
-            redis_client.rpush(EMAIL_QUEUE_KEY, json.dumps(task))
+            await redis.rpush(EMAIL_QUEUE_KEY, json.dumps(task))
             logger.info(f"Queued email for {to_email} with {len(jobs)} jobs")
             return True
 
@@ -53,25 +53,25 @@ class EmailQueueService:
             return False
 
     @staticmethod
-    def get_queue_size() -> int:
+    async def get_queue_size() -> int:
         """Get current queue size."""
-        return redis_client.llen(EMAIL_QUEUE_KEY)
+        return await redis.llen(EMAIL_QUEUE_KEY)
 
     @staticmethod
-    def peek_queue(count: int = 1) -> List[dict]:
+    async def peek_queue(count: int = 1) -> List[dict]:
         """Peek at items in queue without removing them."""
         try:
-            items = redis_client.lrange(EMAIL_QUEUE_KEY, 0, count - 1)
+            items = await redis.lrange(EMAIL_QUEUE_KEY, 0, count - 1)
             return [json.loads(item) for item in items] if items else []
         except Exception as e:
             logger.error(f"Error peeking queue: {e}")
             return []
 
     @staticmethod
-    def pop_queue() -> dict | None:
+    async def pop_queue() -> dict | None:
         """Remove and return the first item from queue."""
         try:
-            item = redis_client.lpop(EMAIL_QUEUE_KEY)
+            item = await redis.lpop(EMAIL_QUEUE_KEY)
             if item:
                 return json.loads(item)
         except Exception as e:
