@@ -4,24 +4,23 @@ from sqlalchemy.orm import Session
 
 from app.models.alert_model import UserAlert
 from app.models.job_model import Job
-from app.services.email_service import EmailService
+from app.services.email_queue_service import EmailQueueService
 
 logger = logging.getLogger(__name__)
 
 
 class AlertService:
     """
-    Service for matching jobs to user alerts and sending notifications.
+    Service for matching jobs to user alerts and queueing notifications.
     """
 
     def __init__(self, db: Session):
         self.db = db
-        self.email_service = EmailService()
 
     def check_and_notify(self, jobs: List[Job]) -> int:
         """
-        Check new jobs against all active alerts and send notifications.
-        Returns count of notifications sent.
+        Check new jobs against all active alerts and queue notifications.
+        Returns count of notifications queued (non-blocking).
         """
         if not jobs:
             return 0
@@ -33,17 +32,17 @@ class AlertService:
             logger.info("No active alerts found")
             return 0
 
-        notifications_sent = 0
+        notifications_queued = 0
 
         for alert in alerts:
             matching_jobs = self._match_jobs_to_alert(alert, jobs)
             
             if matching_jobs:
                 logger.info(f"Alert '{alert.name}' matched {len(matching_jobs)} jobs")
-                if self.email_service.send_job_alert(alert.email, alert.name, matching_jobs):
-                    notifications_sent += 1
+                if EmailQueueService.queue_email(alert.email, alert.name, matching_jobs):
+                    notifications_queued += 1
 
-        return notifications_sent
+        return notifications_queued
 
     def _match_jobs_to_alert(self, alert: UserAlert, jobs: List[Job]) -> List[Job]:
         """
