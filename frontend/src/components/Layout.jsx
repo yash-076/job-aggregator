@@ -1,6 +1,8 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
+import { Button } from './Button';
 
 /**
  * Header component with improved branding and visual hierarchy
@@ -46,6 +48,7 @@ export function Header() {
 export function Nav() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated, user, logout } = useAuth();
 
   const tabs = [
     { id: 'search', label: 'Search Jobs', icon: '🔍', path: '/search' },
@@ -55,25 +58,79 @@ export function Nav() {
 
   const isActive = (path) => location.pathname === path || (path === '/search' && location.pathname === '/');
 
+  const handleTabClick = (path) => {
+    if (!isAuthenticated) {
+      navigate('/signin', { state: { from: { pathname: path } } });
+    } else {
+      navigate(path);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/signin');
+  };
+
   return (
     <nav className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex gap-1">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => navigate(tab.path)}
-              aria-current={isActive(tab.path) ? 'page' : undefined}
-              className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 ${
-                isActive(tab.path)
-                  ? 'border-blue-600 text-blue-600 dark:border-blue-500 dark:text-blue-400'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-slate-600'
-              }`}
-            >
-              <span className="mr-2">{tab.icon}</span>
-              <span className="hidden sm:inline">{tab.label}</span>
-            </button>
-          ))}
+        <div className="flex gap-1 items-center justify-between">
+          <div className="flex gap-1">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => handleTabClick(tab.path)}
+                aria-current={isActive(tab.path) ? 'page' : undefined}
+                className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 ${
+                  isActive(tab.path)
+                    ? 'border-blue-600 text-blue-600 dark:border-blue-500 dark:text-blue-400'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-slate-600'
+                }`}
+              >
+                <span className="mr-2">{tab.icon}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Auth Buttons */}
+          <div className="flex items-center gap-2">
+            {isAuthenticated ? (
+              <>
+                <span className="text-sm text-gray-600 dark:text-gray-400 hidden md:inline">
+                  {(() => {
+                    const name = user?.full_name || user?.email || '';
+                    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+                  })()}
+                </span>
+                <Button
+                  onClick={handleLogout}
+                  variant="secondary"
+                  size="sm"
+                  className="ml-2"
+                >
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={() => navigate('/signin')}
+                  variant="ghost"
+                  size="sm"
+                >
+                  Sign In
+                </Button>
+                <Button
+                  onClick={() => navigate('/signup')}
+                  variant="primary"
+                  size="sm"
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </nav>

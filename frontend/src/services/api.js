@@ -31,7 +31,40 @@ async function fetchWithErrorHandling(url, options = {}) {
   }
 }
 
+/**
+ * Get authorization headers with bearer token
+ */
+function getAuthHeaders() {
+  const token = localStorage.getItem('auth_token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
 const api = {
+  // Authentication
+  register: (data) =>
+    fetchWithErrorHandling(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }),
+
+  login: (email, password) => {
+    const formData = new URLSearchParams();
+    formData.append('username', email); // OAuth2 uses 'username' field
+    formData.append('password', password);
+    
+    return fetchWithErrorHandling(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData,
+    });
+  },
+
+  getCurrentUser: (token) =>
+    fetchWithErrorHandling(`${API_BASE}/auth/me`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    }),
+
   // Jobs
   searchJobs: (params) => {
     const query = new URLSearchParams(params).toString();
@@ -44,14 +77,19 @@ const api = {
   createAlert: (data) =>
     fetchWithErrorHandling(`${API_BASE}/alerts`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify(data),
     }),
 
-  getAlerts: (email) => fetchWithErrorHandling(`${API_BASE}/alerts?email=${email}`),
+  getAlerts: () => fetchWithErrorHandling(`${API_BASE}/alerts`, {
+    headers: getAuthHeaders(),
+  }),
 
   deleteAlert: (id) =>
-    fetchWithErrorHandling(`${API_BASE}/alerts/${id}`, { method: 'DELETE' }),
+    fetchWithErrorHandling(`${API_BASE}/alerts/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    }),
 
   // Resume matching
   matchResume: (file, topN = 20) => {
@@ -61,16 +99,6 @@ const api = {
       method: 'POST',
       body: formData,
     });
-  },
-
-  // Health check - keeps backend alive on free tier
-  healthCheck: async () => {
-    try {
-      await fetch(`${API_BASE}/health`);
-    } catch (error) {
-      // Silently fail - this is just a keep-alive ping
-      console.debug('Backend health check ping sent');
-    }
   },
 };
 

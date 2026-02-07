@@ -5,6 +5,11 @@ class Settings(BaseSettings):
     database_url: str
     redis_url: str = "redis://localhost:6379"
     log_level: str = "INFO"
+
+    # JWT auth
+    jwt_secret_key: str = "change-me"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_days: int = 7
     
     # SMTP settings for email alerts
     smtp_host: str = "smtp.gmail.com"

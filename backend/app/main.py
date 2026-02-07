@@ -10,6 +10,7 @@ from app.core.init_db import init_db
 from app.api.job_routes import router as jobs_router
 from app.api.alert_routes import router as alerts_router
 from app.api.match_routes import router as match_router
+from app.api.auth_routes import router as auth_router
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
@@ -67,15 +68,16 @@ app.add_middleware(
 app.include_router(jobs_router)
 app.include_router(alerts_router)
 app.include_router(match_router)
+app.include_router(auth_router)
 
 
-@app.get("/", operation_id="default_page")
-async def default_page():
-    """Health check endpoint."""
+@app.get("/", operation_id="root")
+async def root():
+    """Root endpoint."""
     return {"status": "healthy", "message": "Server is Running"}
 
 
-@app.api_route("/health", methods=["GET", "HEAD"], operation_id="health_check")
+@app.get("/health")
 async def health_check():
-    """Health check for load balancers and monitoring (supports GET and HEAD)."""
+    """Health check for load balancers and monitoring."""
     return {"status": "ok"}

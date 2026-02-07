@@ -8,20 +8,23 @@ from sqlalchemy import inspect
 
 from app.core.database import engine, Base
 from app.models.job_model import Job
+from app.models.alert_model import UserAlert
+from app.models.user_model import User
 
 
 def init_db():
     """
-    Create all tables only when database is empty.
+    Create missing tables (non-destructive).
     """
     inspector = inspect(engine)
     existing_tables = inspector.get_table_names()
-    if existing_tables:
-        print("Database already initialized. Skipping table creation.")
-        return
 
     Base.metadata.create_all(bind=engine)
-    print("Database tables created successfully.")
+
+    if existing_tables:
+        print("Database checked. Missing tables created if needed.")
+    else:
+        print("Database tables created successfully.")
 
 
 if __name__ == "__main__":

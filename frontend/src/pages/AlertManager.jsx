@@ -6,9 +6,10 @@ import { Card } from '../components/Card';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ErrorMessage, SuccessMessage } from '../components/ErrorMessage';
 import { EmptyState } from '../components/EmptyState';
+import { useAuth } from '../context/AuthContext';
 
 export function AlertManager() {
-  const [email, setEmail] = useState(localStorage.getItem('userEmail') || '');
+  const { user } = useAuth();
   const [alerts, setAlerts] = useState([]);
   const [newAlert, setNewAlert] = useState({
     name: '',
@@ -19,19 +20,14 @@ export function AlertManager() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [emailError, setEmailError] = useState('');
-
-  const isValidEmail = (str) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 
   const loadAlerts = async () => {
-    if (!email) {
-      setAlerts([]);
-      return;
-    }
+    if (!user?.email) return;
+    
     setLoadingAlerts(true);
     setError('');
     try {
-      const data = await api.getAlerts(email);
+      const data = await api.getAlerts();
       setAlerts(data || []);
     } catch (err) {
       setError('Failed to load alerts. Please try again.');
@@ -41,47 +37,18 @@ export function AlertManager() {
     }
   };
 
-  // Debounce alerts loading - only fetch after user stops typing for 500ms
+  // Load alerts when component mounts
   useEffect(() => {
-    // Don't fetch for invalid emails
-    if (email && !isValidEmail(email)) {
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
+    if (user?.email) {
       loadAlerts();
-    }, 500);
-
-    // Cleanup timeout on email change
-    return () => clearTimeout(timeoutId);
-  }, [email]);
-
-  const handleEmailChange = (e) => {
-    const value = e.target.value;
-    setEmail(value);
-    setEmailError(value && !isValidEmail(value) ? 'Please enter a valid email address' : '');
-  };
-
-  const handleClearEmail = () => {
-    setEmail('');
-    setEmailError('');
-    setAlerts([]);
-    localStorage.removeItem('userEmail');
-  };
+    }
+  }, [user?.email]);
 
   const handleCreateAlert = async () => {
     setError('');
     setSuccess('');
 
     // Validation
-    if (!email) {
-      setEmailError('Email is required');
-      return;
-    }
-    if (!isValidEmail(email)) {
-      setEmailError('Please enter a valid email address');
-      return;
-    }
     if (!newAlert.name.trim()) {
       setError('Alert name is required');
       return;
@@ -90,11 +57,10 @@ export function AlertManager() {
     setLoading(true);
     try {
       await api.createAlert({
-        email,
+        email: user.email,
         name: newAlert.name,
         filters: newAlert.filters,
       });
-      localStorage.setItem('userEmail', email);
       setNewAlert({
         name: '',
         filters: { title: '', company: '', location: '', job_type: '' },
@@ -152,48 +118,18 @@ export function AlertManager() {
         />
       )}
 
-      {/* Email Section */}
-      <Card
-        title="Email Address"
-        subtitle="Your alerts will be sent to this email"
-      >
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <Input
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={handleEmailChange}
-              error={emailError}
-              required
-            />
-          </div>
-          {email && (
-            <Button
-              variant="ghost"
-              onClick={handleClearEmail}
-              title="Clear saved email"
-              className="shrink-0"
-            >
-              Clear
-            </Button>
-          )}
-        </div>
-      </Card>
-
       {/* Create Alert Section */}
-      {email && isValidEmail(email) && (
-        <Card title="Create New Alert">
-          <div className="space-y-4">
-            <Input
-              label="Alert Name"
-              placeholder="e.g. Senior Engineer, Remote Design"
-              value={newAlert.name}
-              onChange={(e) =>
-                setNewAlert({ ...newAlert, name: e.target.value })
-              }
-              required
-            />
+      <Card title="Create New Alert" subtitle={`Alerts will be sent to ${user?.email}`}>
+        <div className="space-y-4">
+          <Input
+            label="Alert Name"
+            placeholder="e.g. Senior Engineer, Remote Design"
+            value={newAlert.name}
+            onChange={(e) =>
+              setNewAlert({ ...newAlert, name: e.target.value })
+            }
+            required
+          />
 
             {/* Filters Grid */}
             <div>
@@ -261,7 +197,6 @@ export function AlertManager() {
             </div>
           </div>
         </Card>
-      )}
 
       {/* Alerts List Section */}
       <Card title="Your Alerts">
@@ -274,11 +209,7 @@ export function AlertManager() {
         {!loadingAlerts && alerts.length === 0 && (
           <EmptyState
             title="No alerts yet"
-            description={
-              email && isValidEmail(email)
-                ? 'Create your first alert to start receiving job notifications'
-                : 'Enter a valid email address to create alerts'
-            }
+            description="Create your first alert to start receiving job notifications"
             icon="🔔"
           />
         )}

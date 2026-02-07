@@ -122,20 +122,20 @@ def start_background_scheduler():
         name="Sync Redis with Database every 1 hour",
     )
 
-    # Add job to fetch and save every 2 hours
+    # Add job to fetch and save every 1 hour
     scheduler.add_job(
         fetch_and_save_job,
-        IntervalTrigger(hours=2),
+        IntervalTrigger(hours=1),
         id="fetch_and_save_job",
-        name="Fetch and save jobs every 2 hours",
+        name="Fetch and save jobs every 1 hour",
     )
 
-    # Add job to process email queue every 5 minutes
+    # Add job to process email queue every 24 hours
     scheduler.add_job(
         process_email_queue_job,
-        IntervalTrigger(minutes=5),
+        IntervalTrigger(hours=24),
         id="email_queue_job",
-        name="Process email queue every 5 minutes",
+        name="Process email queue every 24 hours",
     )
 
     scheduler.start()
