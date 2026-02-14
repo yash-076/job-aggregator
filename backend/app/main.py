@@ -71,7 +71,7 @@ app.include_router(match_router)
 app.include_router(auth_router)
 
 
-@app.get("/", operation_id="root")
+@app.api_route("/", methods=["GET", "HEAD"], operation_id="root")
 async def root():
     """Root endpoint."""
     return {"status": "healthy", "message": "Server is Running"}
