@@ -77,7 +77,7 @@ async def root():
     return {"status": "healthy", "message": "Server is Running"}
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
     """Health check for load balancers and monitoring."""
     return {"status": "ok"}
