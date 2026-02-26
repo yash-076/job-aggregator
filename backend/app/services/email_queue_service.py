@@ -17,6 +17,8 @@ class EmailQueueService:
     Prevents blocking of main requests/scheduler jobs.
     """
 
+    MAX_BATCH_SIZE = 5
+
     @staticmethod
     async def queue_email(to_email: str, alert_name: str, jobs: List[Job]) -> bool:
         """

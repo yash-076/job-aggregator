@@ -17,9 +17,32 @@ async function fetchWithErrorHandling(url, options = {}) {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+
+        const isAuthPage = window.location.pathname === '/signin' || window.location.pathname === '/signup';
+        const isLoginRequest = url.includes('/auth/login');
+
+        if (!isAuthPage && !isLoginRequest) {
+          window.location.href = '/signin';
+        }
+
+        throw new Error('Session expired. Please sign in again.');
+      }
+
       const errorData = await response.json().catch(() => ({}));
       const errorMessage = errorData.detail || errorData.message || `Error: ${response.statusText}`;
       throw new Error(errorMessage);
+    }
+
+    if (response.status === 204) {
+      return null;
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      return null;
     }
 
     return await response.json();

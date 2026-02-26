@@ -15,7 +15,8 @@ export function AlertManager() {
     name: '',
     filters: { title: '', company: '', location: '', job_type: '' },
   });
-  const [loading, setLoading] = useState(false);
+  const [creatingAlert, setCreatingAlert] = useState(false);
+  const [deletingAlertId, setDeletingAlertId] = useState(null);
   const [loadingAlerts, setLoadingAlerts] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -54,7 +55,7 @@ export function AlertManager() {
       return;
     }
 
-    setLoading(true);
+    setCreatingAlert(true);
     try {
       await api.createAlert({
         email: user.email,
@@ -72,13 +73,13 @@ export function AlertManager() {
     } catch (err) {
       setError(err.message || 'Failed to create alert. Please try again.');
     } finally {
-      setLoading(false);
+      setCreatingAlert(false);
     }
   };
 
   const handleDeleteAlert = async (id) => {
     setError('');
-    setLoading(true);
+    setDeletingAlertId(id);
     try {
       await api.deleteAlert(id);
       setDeleteConfirm(null);
@@ -88,7 +89,7 @@ export function AlertManager() {
     } catch (err) {
       setError('Failed to delete alert. Please try again.');
     } finally {
-      setLoading(false);
+      setDeletingAlertId(null);
     }
   };
 
@@ -189,10 +190,10 @@ export function AlertManager() {
             <div className="pt-2">
               <Button
                 onClick={handleCreateAlert}
-                disabled={loading || !newAlert.name.trim()}
+                disabled={creatingAlert || !newAlert.name.trim()}
                 fullWidth
               >
-                {loading ? 'Creating Alert...' : 'Create Alert'}
+                {creatingAlert ? 'Creating Alert...' : 'Create Alert'}
               </Button>
             </div>
           </div>
@@ -271,15 +272,15 @@ export function AlertManager() {
                         onClick={() => handleDeleteAlert(alert.id)}
                         variant="danger"
                         size="sm"
-                        disabled={loading}
+                        disabled={deletingAlertId === alert.id}
                       >
-                        Confirm
+                        {deletingAlertId === alert.id ? 'Deleting...' : 'Confirm'}
                       </Button>
                       <Button
                         onClick={() => setDeleteConfirm(null)}
                         variant="secondary"
                         size="sm"
-                        disabled={loading}
+                        disabled={deletingAlertId === alert.id}
                       >
                         Cancel
                       </Button>

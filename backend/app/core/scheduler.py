@@ -44,6 +44,10 @@ async def fetch_and_save_job():
                     alert_service = AlertService(db)
                     # Get all active alerts
                     alerts = db.query(UserAlert).filter_by(is_active=True).all()
+
+                    if not alerts:
+                        logger.info("No active alerts found, skipping email queue")
+                        return
                     
                     notifications_queued = 0
                     for alert in alerts:
@@ -52,8 +56,11 @@ async def fetch_and_save_job():
                             logger.info(f"Alert '{alert.name}' matched {len(matching_jobs)} jobs")
                             if await EmailQueueService.queue_email(alert.email, alert.name, matching_jobs):
                                 notifications_queued += 1
-                    
-                    logger.info(f"Queued {notifications_queued} alert notifications")
+
+                    if notifications_queued > 0:
+                        logger.info(f"Queued {notifications_queued} alert notifications")
+                    else:
+                        logger.info("No alert matches found, email queue not triggered")
             finally:
                 db.close()
         else:
@@ -130,12 +137,12 @@ def start_background_scheduler():
         name="Fetch and save jobs every 1 hour",
     )
 
-    # Add job to process email queue every 24 hours
+    # Add job to process email queue every 5 minutes
     scheduler.add_job(
         process_email_queue_job,
-        IntervalTrigger(hours=24),
+        IntervalTrigger(minutes=5),
         id="email_queue_job",
-        name="Process email queue every 24 hours",
+        name="Process email queue every 5 minutes",
     )
 
     scheduler.start()
