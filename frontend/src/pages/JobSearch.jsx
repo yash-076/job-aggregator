@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Button } from '../components/Button';
-import { Input, Select } from '../components/Input';
-import { Card } from '../components/Card';
-import { LoadingSpinner } from '../components/LoadingSpinner';
-import { ErrorMessage } from '../components/ErrorMessage';
-import { EmptyState } from '../components/EmptyState';
+import { Search, RotateCcw, MapPin, Building2, Briefcase, ChevronLeft, ChevronRight, ExternalLink, Sparkles } from 'lucide-react';
 
 export function JobSearch() {
   const [filters, setFilters] = useState({
@@ -46,12 +41,7 @@ export function JobSearch() {
   };
 
   const handleReset = () => {
-    setFilters({
-      title: '',
-      company: '',
-      location: '',
-      job_type: '',
-    });
+    setFilters({ title: '', company: '', location: '', job_type: '' });
     setJobs([]);
     setTotal(0);
     setPage(0);
@@ -60,9 +50,7 @@ export function JobSearch() {
   };
 
   useEffect(() => {
-    if (hasSearched) {
-      handleSearch();
-    }
+    if (hasSearched) handleSearch();
   }, [page]);
 
   const jobTypeOptions = [
@@ -73,178 +61,124 @@ export function JobSearch() {
     { value: 'contract', label: 'Contract' },
   ];
 
+  const inputClass =
+    'w-full bg-[#0d1225] border border-landing-border rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all duration-200';
+
   return (
     <div className="space-y-6">
       {/* Search Filters */}
-      <Card title="Search Filters">
-        {error && (
-          <ErrorMessage
-            message={error}
-            onDismiss={() => setError('')}
-            dismissible
-          />
-        )}
-
-        <div className="space-y-4 mt-4">
-          {/* Grid Layout - responsive */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="Job Title"
-              placeholder="e.g. Software Engineer, Designer"
-              value={filters.title}
-              onChange={(e) =>
-                setFilters({ ...filters, title: e.target.value })
-              }
-            />
-            <Input
-              label="Company"
-              placeholder="e.g. Google, Microsoft"
-              value={filters.company}
-              onChange={(e) =>
-                setFilters({ ...filters, company: e.target.value })
-              }
-            />
-            <Input
-              label="Location"
-              placeholder="e.g. San Francisco, Remote"
-              value={filters.location}
-              onChange={(e) =>
-                setFilters({ ...filters, location: e.target.value })
-              }
-            />
-            <Select
-              label="Job Type"
-              value={filters.job_type}
-              onChange={(e) =>
-                setFilters({ ...filters, job_type: e.target.value })
-              }
-              options={jobTypeOptions}
-            />
+      <div className="landing-card rounded-2xl p-6 sm:p-8 border border-landing-border">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center">
+            <Search className="w-5 h-5 text-blue-400" />
           </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-2 pt-2">
-            <Button
-              onClick={() => {
-                setPage(0);
-                handleSearch();
-              }}
-              disabled={loading}
-              size="md"
-            >
-              {loading ? 'Searching...' : 'Search'}
-            </Button>
-            <Button
-              onClick={handleReset}
-              variant="secondary"
-              disabled={loading}
-              size="md"
-            >
-              Reset
-            </Button>
+          <div>
+            <h2 className="text-lg font-semibold text-white">Search Filters</h2>
+            <p className="text-xs text-gray-500">Find your perfect job opportunity</p>
           </div>
         </div>
-      </Card>
 
-      {/* Results Section */}
+        {error && (
+          <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-between">
+            <p className="text-sm text-red-400">{error}</p>
+            <button onClick={() => setError('')} className="text-red-400 hover:text-red-300 text-xs">Dismiss</button>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Job Title</label>
+            <input value={filters.title} onChange={(e) => setFilters({ ...filters, title: e.target.value })} placeholder="e.g. Software Engineer" className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Company</label>
+            <input value={filters.company} onChange={(e) => setFilters({ ...filters, company: e.target.value })} placeholder="e.g. Google, Microsoft" className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Location</label>
+            <input value={filters.location} onChange={(e) => setFilters({ ...filters, location: e.target.value })} placeholder="e.g. San Francisco, Remote" className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Job Type</label>
+            <select value={filters.job_type} onChange={(e) => setFilters({ ...filters, job_type: e.target.value })} className={inputClass + ' cursor-pointer'}>
+              {jobTypeOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <button onClick={() => { setPage(0); handleSearch(); }} disabled={loading} className="landing-btn-primary px-6 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 disabled:opacity-50">
+            <Search className="w-4 h-4" /> {loading ? 'Searching...' : 'Search'}
+          </button>
+          <button onClick={handleReset} disabled={loading} className="landing-btn-secondary px-6 py-3 rounded-xl text-sm font-semibold flex items-center gap-2">
+            <RotateCcw className="w-4 h-4" /> Reset
+          </button>
+        </div>
+      </div>
+
+      {/* Results */}
       {hasSearched && (
         <>
-          {/* Results Summary */}
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">
-                Found <span className="font-semibold text-gray-900">{total}</span> {total === 1 ? 'job' : 'jobs'}
-              </p>
-            </div>
+            <p className="text-sm text-gray-400">
+              Found <span className="font-semibold text-white">{total}</span> {total === 1 ? 'job' : 'jobs'}
+            </p>
             {totalPages > 1 && (
-              <p className="text-sm text-gray-600">
-                Page <span className="font-semibold">{page + 1}</span> of{' '}
-                <span className="font-semibold">{totalPages}</span>
-              </p>
+              <p className="text-sm text-gray-500">Page {page + 1} of {totalPages}</p>
             )}
           </div>
 
-          {/* Jobs List */}
           {loading && (
-            <div className="py-12">
-              <LoadingSpinner message="Finding jobs..." />
+            <div className="py-16 text-center">
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-sm text-gray-400">Finding jobs...</p>
             </div>
           )}
 
           {!loading && jobs.length > 0 && (
             <div className="space-y-3">
               {jobs.map(job => (
-                <Card key={job.id} hoverable className="group">
+                <div key={job.id} className="landing-card rounded-xl p-5 border border-landing-border hover:border-blue-500/20 transition-all group">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
-                        {job.title}
-                      </h3>
-                      <p className="text-base text-gray-600 dark:text-gray-400 mt-1">{job.company}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-                        📍 {job.location || 'Remote'}
-                      </p>
-
-                      {/* Job Type Badge */}
-                      <div className="mt-3 flex gap-2">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
-                          {job.job_type || 'full-time'}
+                      <h3 className="text-base font-semibold text-white group-hover:text-blue-400 transition-colors">{job.title}</h3>
+                      <div className="flex items-center gap-3 mt-2 text-sm text-gray-400">
+                        <span className="flex items-center gap-1"><Building2 className="w-3.5 h-3.5" /> {job.company}</span>
+                        <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {job.location || 'Remote'}</span>
+                      </div>
+                      <div className="mt-3">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                          <Briefcase className="w-3 h-3 mr-1" /> {job.job_type || 'full-time'}
                         </span>
                       </div>
                     </div>
-
-                    {/* Apply Button */}
-                    <div className="flex-shrink-0">
-                      <a
-                        href={job.apply_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 dark:bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
-                      >
-                        View Job →
-                      </a>
-                    </div>
+                    <a href={job.apply_link} target="_blank" rel="noopener noreferrer" className="landing-btn-primary !px-4 !py-2.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shrink-0">
+                      View Job <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           )}
 
           {!loading && jobs.length === 0 && (
-            <EmptyState
-              title="No jobs found"
-              description="Try adjusting your filters or search terms"
-              icon="🔍"
-              action={
-                <Button variant="secondary" onClick={handleReset}>
-                  Clear Filters
-                </Button>
-              }
-            />
+            <div className="landing-card rounded-2xl p-12 border border-landing-border text-center">
+              <Search className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">No jobs found</h3>
+              <p className="text-sm text-gray-400 mb-6">Try adjusting your filters or search terms</p>
+              <button onClick={handleReset} className="landing-btn-secondary px-5 py-2.5 rounded-xl text-sm font-semibold">Clear Filters</button>
+            </div>
           )}
 
-          {/* Pagination */}
           {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4">
-              <Button
-                onClick={() => setPage(p => Math.max(0, p - 1))}
-                disabled={page === 0 || loading}
-                variant="secondary"
-              >
-                ← Previous
-              </Button>
-
-              <div className="text-sm text-gray-600">
-                Page {page + 1} of {totalPages}
-              </div>
-
-              <Button
-                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1 || loading}
-                variant="secondary"
-              >
-                Next →
-              </Button>
+            <div className="flex items-center justify-between pt-2">
+              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="landing-btn-secondary px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-1 disabled:opacity-30">
+                <ChevronLeft className="w-4 h-4" /> Previous
+              </button>
+              <span className="text-sm text-gray-500">Page {page + 1} of {totalPages}</span>
+              <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1} className="landing-btn-secondary px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-1 disabled:opacity-30">
+                Next <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           )}
         </>
@@ -252,11 +186,13 @@ export function JobSearch() {
 
       {/* Initial State */}
       {!hasSearched && !error && (
-        <EmptyState
-          title="Start searching for jobs"
-          description="Enter your job preferences above and click Search to find opportunities"
-          icon="🚀"
-        />
+        <div className="landing-card rounded-2xl p-12 border border-landing-border text-center">
+          <div className="w-16 h-16 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-blue-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-white mb-2">Start searching for jobs</h3>
+          <p className="text-sm text-gray-400">Enter your job preferences above and click Search to find opportunities</p>
+        </div>
       )}
     </div>
   );

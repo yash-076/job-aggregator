@@ -19,18 +19,3 @@ export function LoadingSpinner({ size = 'md', message = 'Loading...' }) {
     </div>
   );
 }
-
-/**
- * Inline loading state for buttons
- * Dark mode support included
- */
-export function ButtonSpinner({ size = 'sm' }) {
-  const sizeClasses = {
-    sm: 'w-3 h-3 mr-2',
-    md: 'w-4 h-4 mr-2',
-  };
-
-  return (
-    <span className={`inline-block ${sizeClasses[size]} border-2 border-current border-t-transparent rounded-full animate-spin`} />
-  );
-}

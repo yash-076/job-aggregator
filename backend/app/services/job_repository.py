@@ -31,8 +31,8 @@ class JobRepository:
             existing.job_type = job.job_type
             existing.description = job.description
             existing.apply_link = job.apply_link
-            existing.source = job.source,
-            existing.job_metadata = job.job_metadata,
+            existing.source = job.source
+            existing.job_metadata = job.job_metadata
             existing.is_active = True
             self.db.commit()
             return existing

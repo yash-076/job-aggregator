@@ -1,55 +1,83 @@
 import React from 'react';
-import { Card } from '../components/Card';
+import { Target, Zap, Shield, Search, Bell, FileText, Sparkles } from 'lucide-react';
+
+const features = [
+  { icon: Search, title: 'Job Search', desc: 'Browse jobs from multiple sources with advanced filters' },
+  { icon: Bell, title: 'Smart Alerts', desc: 'Get email notifications for jobs matching your criteria' },
+  { icon: FileText, title: 'Resume Matching', desc: 'AI-powered matching between your resume and job listings' },
+  { icon: Sparkles, title: 'AI Powered', desc: 'Intelligent analysis for better job recommendations' },
+];
+
+const values = [
+  { icon: Zap, title: 'Fast & Reliable', desc: 'Quick job aggregation from multiple sources in real-time' },
+  { icon: Shield, title: 'Privacy First', desc: 'Your data is never shared with third parties without consent' },
+  { icon: Target, title: 'Smart Matching', desc: 'Intelligent algorithms to match you with the right jobs' },
+];
 
 export function About() {
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">About Job Aggregator</h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400">
-          Your centralized platform for discovering jobs and managing your career
+    <div className="max-w-4xl mx-auto space-y-10">
+      {/* Hero */}
+      <div className="text-center">
+        <div className="landing-section-badge mb-4 mx-auto">
+          <Target className="w-4 h-4" />
+          <span>About Us</span>
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          About Role<span className="text-gradient">Sync</span>
+        </h1>
+        <p className="text-base text-gray-400 max-w-2xl mx-auto leading-relaxed">
+          Your centralized platform for discovering jobs, managing alerts, and finding your perfect career match with AI.
         </p>
       </div>
 
-      <Card title="Our Mission">
-        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-          Job Aggregator is built to simplify your job search process. We combine multiple job sources, 
+      {/* Mission */}
+      <div className="landing-card rounded-2xl p-6 sm:p-8 border border-landing-border">
+        <h2 className="text-xl font-bold text-white mb-3">Our Mission</h2>
+        <p className="text-gray-400 leading-relaxed">
+          RoleSync is built to simplify your job search process. We combine multiple job sources,
           intelligent filtering, and smart matching to help you find the perfect opportunity faster.
+          No more switching between dozens of job boards — everything you need in one place.
         </p>
-      </Card>
+      </div>
 
-      <Card title="Features">
-        <ul className="space-y-3 text-gray-700 dark:text-gray-300">
-          <li className="flex items-start">
-            <span className="text-blue-600 dark:text-blue-400 mr-3">✓</span>
-            <span><strong>Job Search:</strong> Browse jobs from multiple sources with advanced filters</span>
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-600 dark:text-blue-400 mr-3">✓</span>
-            <span><strong>Smart Alerts:</strong> Get email notifications for jobs matching your criteria</span>
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-600 dark:text-blue-400 mr-3">✓</span>
-            <span><strong>Resume Matching:</strong> AI-powered matching between your resume and job listings</span>
-          </li>
-          <li className="flex items-start">
-            <span className="text-blue-600 dark:text-blue-400 mr-3">✓</span>
-            <span><strong>Dark Mode:</strong> Comfortable viewing in any lighting condition</span>
-          </li>
-        </ul>
-      </Card>
+      {/* Features Grid */}
+      <div>
+        <h2 className="text-xl font-bold text-white mb-5 text-center">What We Offer</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {features.map((f) => {
+            const Icon = f.icon;
+            return (
+              <div key={f.title} className="landing-card rounded-xl p-5 border border-landing-border hover:border-blue-500/30 transition-all group">
+                <div className="w-9 h-9 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center mb-3 group-hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-shadow">
+                  <Icon className="w-5 h-5 text-blue-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">{f.title}</h3>
+                <p className="text-sm text-gray-400">{f.desc}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
-      <Card title="Why Choose Us?">
-        <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-          We believe job searching shouldn't be frustrating. That's why we're committed to providing:
-        </p>
-        <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-          <li>• A clean, intuitive interface</li>
-          <li>• Fast, reliable job aggregation</li>
-          <li>• Intelligent job matching technology</li>
-          <li>• Privacy-first approach to your data</li>
-        </ul>
-      </Card>
+      {/* Why Choose Us */}
+      <div>
+        <h2 className="text-xl font-bold text-white mb-5 text-center">Why Choose Us?</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {values.map((v) => {
+            const Icon = v.icon;
+            return (
+              <div key={v.title} className="landing-card rounded-xl p-5 border border-landing-border text-center">
+                <div className="w-10 h-10 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-3">
+                  <Icon className="w-6 h-6 text-blue-400" />
+                </div>
+                <h3 className="text-base font-semibold text-white mb-2">{v.title}</h3>
+                <p className="text-sm text-gray-400">{v.desc}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

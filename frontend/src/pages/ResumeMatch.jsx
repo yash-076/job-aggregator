@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
 import api from '../services/api';
-import { Button } from '../components/Button';
-import { Card } from '../components/Card';
-import { LoadingSpinner } from '../components/LoadingSpinner';
-import { ErrorMessage } from '../components/ErrorMessage';
-import { EmptyState } from '../components/EmptyState';
+import { FileText, Upload, X, BarChart3, Sparkles, ExternalLink, Search } from 'lucide-react';
 
 export function ResumeMatch() {
   const [file, setFile] = useState(null);
@@ -16,18 +12,8 @@ export function ResumeMatch() {
   const [hasSearched, setHasSearched] = useState(false);
 
   const handleUpload = async () => {
-    if (!file) {
-      setError('Please select a PDF file');
-      return;
-    }
-
-    // Validate file type
-    if (!file.type.includes('pdf')) {
-      setError('Please upload a PDF file');
-      setFile(null);
-      return;
-    }
-
+    if (!file) { setError('Please select a PDF file'); return; }
+    if (!file.type.includes('pdf')) { setError('Please upload a PDF file'); setFile(null); return; }
     setLoading(true);
     setError('');
     try {
@@ -36,7 +22,7 @@ export function ResumeMatch() {
       setTotalScored(data.total_jobs_scored || 0);
       setHasSearched(true);
     } catch (err) {
-      setError(err.message || 'Failed to upload and analyze resume. Please try again.');
+      setError(err.message || 'Failed to analyze resume. Please try again.');
       setMatches([]);
       setTotalScored(0);
       setHasSearched(false);
@@ -48,11 +34,8 @@ export function ResumeMatch() {
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setIsDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setIsDragActive(false);
-    }
+    if (e.type === 'dragenter' || e.type === 'dragover') setIsDragActive(true);
+    else if (e.type === 'dragleave') setIsDragActive(false);
   };
 
   const handleDrop = (e) => {
@@ -61,21 +44,14 @@ export function ResumeMatch() {
     setIsDragActive(false);
     const droppedFile = e.dataTransfer.files?.[0];
     if (droppedFile) {
-      if (droppedFile.type.includes('pdf')) {
-        setFile(droppedFile);
-        setError('');
-      } else {
-        setError('Please drop a PDF file');
-      }
+      if (droppedFile.type.includes('pdf')) { setFile(droppedFile); setError(''); }
+      else setError('Please drop a PDF file');
     }
   };
 
   const handleFileInput = (e) => {
     const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setError('');
-    }
+    if (selectedFile) { setFile(selectedFile); setError(''); }
   };
 
   const handleReset = () => {
@@ -86,247 +62,179 @@ export function ResumeMatch() {
     setHasSearched(false);
   };
 
-  // Helper function to get match score color
   const getScoreColor = (score) => {
-    if (score >= 25) return 'text-green-600';
-    if (score >= 20) return 'text-blue-600';
-    if (score >= 15) return 'text-yellow-600';
-    return 'text-gray-600';
+    if (score >= 25) return 'text-green-400';
+    if (score >= 20) return 'text-blue-400';
+    if (score >= 15) return 'text-yellow-400';
+    return 'text-gray-400';
   };
 
-  const getScoreBgColor = (score) => {
-    if (score >= 25) return 'bg-green-50 border-green-100';
-    if (score >= 20) return 'bg-blue-50 border-blue-100';
-    if (score >= 15) return 'bg-yellow-50 border-yellow-100';
-    return 'bg-gray-50 border-gray-100';
+  const getScoreBarColor = (score) => {
+    if (score >= 25) return 'bg-green-500';
+    if (score >= 20) return 'bg-blue-500';
+    if (score >= 15) return 'bg-yellow-500';
+    return 'bg-gray-500';
   };
 
   return (
     <div className="space-y-6">
       {/* Upload Section */}
-      <Card title="Upload Your Resume">
-        {error && (
-          <ErrorMessage
-            message={error}
-            onDismiss={() => setError('')}
-            dismissible
-          />
-        )}
-
-        <div className="space-y-4 mt-2">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Upload your resume in PDF format to match it against our job listings and see how well you fit each position.
-          </p>
-
-          {/* Drag & Drop Zone */}
-          <div
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors duration-200 cursor-pointer ${
-              isDragActive
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                : 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 hover:border-gray-400 dark:hover:border-slate-500'
-            }`}
-          >
-            <input
-              type="file"
-              accept=".pdf"
-              onChange={handleFileInput}
-              className="hidden"
-              id="resume-input"
-              disabled={loading}
-            />
-            <label
-              htmlFor="resume-input"
-              className="block cursor-pointer"
-            >
-              <div className="text-4xl mb-3">📄</div>
-              <p className="font-medium text-gray-900 mb-1 dark:text-gray-600">
-                {file ? 'Resume selected' : 'Drag and drop your PDF here'}
-              </p>
-              <p className="text-sm text-gray-600">
-                {file ? file.name : 'or click to browse'}
-              </p>
-            </label>
+      <div className="landing-card rounded-2xl p-6 sm:p-8 border border-landing-border">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center">
+            <Upload className="w-5 h-5 text-blue-400" />
           </div>
-
-          {/* File Info */}
-          {file && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">✓</span>
-                <div>
-                  <p className="font-medium text-gray-900 dark:text-white">{file.name}</p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    {(file.size / 1024).toFixed(1)} KB
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setFile(null)}
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium text-sm transition-colors duration-200"
-              >
-                Change
-              </button>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-2">
-            <Button
-              onClick={handleUpload}
-              disabled={loading || !file}
-              fullWidth
-            >
-              {loading ? 'Analyzing Resume...' : 'Find Matches'}
-            </Button>
-            {file && (
-              <Button
-                onClick={handleReset}
-                variant="secondary"
-                disabled={loading}
-              >
-                Clear
-              </Button>
-            )}
+          <div>
+            <h2 className="text-lg font-semibold text-white">Upload Your Resume</h2>
+            <p className="text-xs text-gray-500">PDF format — AI-powered matching</p>
           </div>
         </div>
-      </Card>
 
-      {/* Results Section */}
-      {hasSearched && (
-        <>
-          {/* Summary Card */}
-          <Card
-            title="Analysis Results"
-            className="bg-gradient-to-br from-blue-50 dark:from-blue-900/20 to-indigo-50 dark:to-slate-800 border-blue-200 dark:border-blue-900"
-          >
-            <div className="flex flex-col sm:flex-row gap-6 sm:gap-8">
-              <div className="text-center sm:text-left">
-                <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">{totalScored}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Jobs Analyzed</p>
-              </div>
-              <div className="border-l border-blue-200 dark:border-blue-800" />
-              <div className="text-center sm:text-left">
-                <p className="text-4xl font-bold text-green-600 dark:text-green-400">{matches.length}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Matching Jobs</p>
+        {error && (
+          <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-between">
+            <p className="text-sm text-red-400">{error}</p>
+            <button onClick={() => setError('')} className="text-red-400 hover:text-red-300"><X className="w-4 h-4" /></button>
+          </div>
+        )}
+
+        <p className="text-sm text-gray-400 mb-4">
+          Upload your resume in PDF format to match it against our job listings and see how well you fit each position.
+        </p>
+
+        {/* Drag & Drop Zone */}
+        <div
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+          className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer ${
+            isDragActive
+              ? 'border-blue-500 bg-blue-500/5'
+              : 'border-landing-border bg-[#0d1225] hover:border-blue-500/30'
+          }`}
+        >
+          <input type="file" accept=".pdf" onChange={handleFileInput} className="hidden" id="resume-input" disabled={loading} />
+          <label htmlFor="resume-input" className="block cursor-pointer">
+            <FileText className="w-10 h-10 text-gray-600 mx-auto mb-3" />
+            <p className="font-medium text-gray-300 mb-1">
+              {file ? 'Resume selected' : 'Drag and drop your PDF here'}
+            </p>
+            <p className="text-sm text-gray-500">{file ? file.name : 'or click to browse'}</p>
+          </label>
+        </div>
+
+        {/* File Info */}
+        {file && (
+          <div className="mt-4 bg-blue-500/5 border border-blue-500/20 rounded-xl p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-blue-400" />
+              <div>
+                <p className="text-sm font-medium text-white">{file.name}</p>
+                <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
               </div>
             </div>
-          </Card>
+            <button onClick={() => setFile(null)} className="text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors">Change</button>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 mt-6">
+          <button onClick={handleUpload} disabled={loading || !file} className="landing-btn-primary flex-1 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            {loading ? (
+              <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Analyzing...</>
+            ) : (
+              <><Sparkles className="w-4 h-4" /> Find Matches</>
+            )}
+          </button>
+          {file && (
+            <button onClick={handleReset} disabled={loading} className="landing-btn-secondary px-5 py-3.5 rounded-xl text-sm font-semibold">Clear</button>
+          )}
+        </div>
+      </div>
+
+      {/* Results */}
+      {hasSearched && (
+        <>
+          {/* Summary */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="landing-card rounded-xl p-6 border border-landing-border text-center">
+              <p className="text-3xl font-bold text-blue-400">{totalScored}</p>
+              <p className="text-xs text-gray-500 mt-1">Jobs Analyzed</p>
+            </div>
+            <div className="landing-card rounded-xl p-6 border border-landing-border text-center">
+              <p className="text-3xl font-bold text-green-400">{matches.length}</p>
+              <p className="text-xs text-gray-500 mt-1">Matching Jobs</p>
+            </div>
+          </div>
 
           {/* Top Matches */}
           {matches.length > 0 && (
             <div>
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-600">Top Matches</h2>
-                <p className="text-sm text-gray-600 mt-1 dark:text-gray-400">
-                  Jobs ranked by how well your resume matches the requirements
-                </p>
+              <div className="flex items-center gap-3 mb-4">
+                <BarChart3 className="w-5 h-5 text-blue-400" />
+                <div>
+                  <h2 className="text-lg font-semibold text-white">Top Matches</h2>
+                  <p className="text-xs text-gray-500">Ranked by resume compatibility</p>
+                </div>
               </div>
 
               <div className="space-y-3">
                 {matches.map((match, idx) => (
-                  <Card key={match.job.id} hoverable className="group">
+                  <div key={match.job.id} className="landing-card rounded-xl p-5 border border-landing-border hover:border-blue-500/20 transition-all group">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                      {/* Job Info */}
                       <div className="flex-1 min-w-0">
-                        {/* Rank */}
-                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wide mb-1">
-                          #{idx + 1} Match
-                        </p>
-
-                        {/* Title */}
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
-                          {match.job.title}
-                        </h3>
-
-                        {/* Company */}
-                        <p className="text-base text-gray-600 dark:text-gray-400 mt-1">{match.job.company}</p>
-
-                        {/* Location */}
-                        <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-                          📍 {match.job.location || 'Remote'}
-                        </p>
-
-                        {/* CTA */}
-                        <a
-                          href={match.job.apply_link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center mt-3 px-4 py-2 rounded-lg bg-blue-600 dark:bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
-                        >
-                          View Job →
+                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">#{idx + 1} Match</p>
+                        <h3 className="text-base font-semibold text-white group-hover:text-blue-400 transition-colors">{match.job.title}</h3>
+                        <p className="text-sm text-gray-400 mt-1">{match.job.company}</p>
+                        <p className="text-xs text-gray-500 mt-1">📍 {match.job.location || 'Remote'}</p>
+                        <a href={match.job.apply_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center mt-3 gap-1.5 landing-btn-primary !px-4 !py-2 rounded-lg text-xs font-medium">
+                          View Job <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
 
-                      {/* Match Score */}
-                      <div
-                        className={`flex-shrink-0 rounded-lg p-4 border text-center ${getScoreBgColor(
-                          match.match_score
-                        )}`}
-                      >
-                        <p className={`text-3xl font-bold ${getScoreColor(match.match_score)}`}>
-                          {Math.round(match.match_score)}
-                        </p>
-                        <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mt-1">Match</p>
-
-                        {/* Score Indicator */}
-                        <div className="mt-2 w-full bg-gray-200 dark:bg-slate-600 rounded-full h-1.5">
-                          <div
-                            className={`h-1.5 rounded-full transition-all ${
-                              match.match_score >= 25
-                                ? 'bg-green-500'
-                                : match.match_score >= 20
-                                ? 'bg-blue-500'
-                                : match.match_score >= 15
-                                ? 'bg-yellow-500'
-                                : 'bg-gray-400'
-                            }`}
-                            style={{
-                              width: `${Math.min(match.match_score*2, 100)}%`,
-                            }}
-                          />
+                      {/* Score */}
+                      <div className="shrink-0 bg-[#0d1225] border border-landing-border rounded-xl p-4 text-center min-w-[80px]">
+                        <p className={`text-2xl font-bold ${getScoreColor(match.match_score)}`}>{Math.round(match.match_score)}</p>
+                        <p className="text-xs text-gray-500 mt-1">Score</p>
+                        <div className="mt-2 w-full bg-[#1a2344] rounded-full h-1.5">
+                          <div className={`h-1.5 rounded-full transition-all ${getScoreBarColor(match.match_score)}`} style={{ width: `${Math.min(match.match_score * 2, 100)}%` }} />
                         </div>
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* No Matches State */}
           {matches.length === 0 && !loading && (
-            <EmptyState
-              title="No strong matches found"
-              description="Try uploading a different resume or expanding your job search criteria"
-              icon="🔍"
-              action={
-                <Button variant="secondary" onClick={handleReset}>
-                  Upload Different Resume
-                </Button>
-              }
-            />
+            <div className="landing-card rounded-2xl p-12 border border-landing-border text-center">
+              <Search className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">No strong matches found</h3>
+              <p className="text-sm text-gray-400 mb-6">Try uploading a different resume</p>
+              <button onClick={handleReset} className="landing-btn-secondary px-5 py-2.5 rounded-xl text-sm font-semibold">Upload Different Resume</button>
+            </div>
           )}
         </>
       )}
 
-      {/* Loading State */}
+      {/* Loading */}
       {loading && (
-        <div className="py-12">
-          <LoadingSpinner message="Analyzing your resume and scanning jobs..." />
+        <div className="py-16 text-center">
+          <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-sm text-gray-400">Analyzing your resume and scanning jobs...</p>
         </div>
       )}
 
       {/* Initial State */}
       {!loading && !hasSearched && !error && (
-        <EmptyState
-          title="Ready to find your perfect job match?"
-          description="Upload your resume above and we'll analyze it against our entire job database to find the best opportunities for you."
-          icon="🚀"
-        />
+        <div className="landing-card rounded-2xl p-12 border border-landing-border text-center">
+          <div className="w-16 h-16 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-blue-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-white mb-2">Ready to find your perfect job match?</h3>
+          <p className="text-sm text-gray-400">Upload your resume above and we'll analyze it against our entire job database.</p>
+        </div>
       )}
     </div>
   );

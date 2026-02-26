@@ -1,6 +1,6 @@
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any, Union
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 
 
 class JobResponse(BaseModel):
@@ -14,9 +14,17 @@ class JobResponse(BaseModel):
     apply_link: str
     source: str
     is_active: bool
-    job_metadata: Dict = {}
+    job_metadata: Union[Dict, List] = {}
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+    @field_validator('job_metadata', mode='before')
+    @classmethod
+    def coerce_metadata(cls, v):
+        """Handle legacy data where trailing comma stored a tuple/list."""
+        if isinstance(v, (list, tuple)) and len(v) == 1 and isinstance(v[0], dict):
+            return v[0]
+        return v if v is not None else {}
 
     class Config:
         from_attributes = True

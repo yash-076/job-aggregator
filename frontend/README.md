@@ -1,6 +1,6 @@
-# Job Aggregator Frontend
+# RoleSync Frontend
 
-Modern React + Vite + Tailwind frontend for the Job Aggregator platform.
+Modern React + Vite + Tailwind frontend for the RoleSync platform.
 
 ## Setup
 

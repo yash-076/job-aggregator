@@ -89,4 +89,69 @@ body {
   .gradient-subtle {
     @apply bg-gradient-to-br from-blue-50 dark:from-slate-800 to-indigo-50 dark:to-slate-700;
   }
+
+  /* Landing Page Utilities */
+  .landing-bg {
+    background: #060918;
+  }
+
+  .landing-gradient-radial {
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(59,130,246,0.15) 0%, transparent 70%);
+  }
+
+  .landing-gradient-radial-bottom {
+    background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(59,130,246,0.1) 0%, transparent 70%);
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400;
+  }
+
+  .glow-border {
+    border: 1px solid rgba(59,130,246,0.2);
+    box-shadow: 0 0 15px rgba(59,130,246,0.05), inset 0 0 15px rgba(59,130,246,0.05);
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 30px rgba(59,130,246,0.3);
+  }
+
+  .landing-card {
+    background: linear-gradient(135deg, rgba(13,18,37,0.8) 0%, rgba(17,24,51,0.6) 100%);
+    border: 1px solid rgba(59,130,246,0.1);
+    backdrop-filter: blur(10px);
+  }
+
+  .landing-card:hover {
+    border-color: rgba(59,130,246,0.25);
+    box-shadow: 0 0 30px rgba(59,130,246,0.08);
+  }
+
+  .landing-btn-primary {
+    @apply px-6 py-3 rounded-lg font-semibold text-white transition-all duration-300;
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    box-shadow: 0 0 20px rgba(37,99,235,0.3);
+  }
+
+  .landing-btn-primary:hover {
+    box-shadow: 0 0 30px rgba(37,99,235,0.5);
+    transform: translateY(-1px);
+  }
+
+  .landing-btn-secondary {
+    @apply px-6 py-3 rounded-lg font-semibold text-gray-300 transition-all duration-300;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .landing-btn-secondary:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .landing-section-badge {
+    @apply inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium text-blue-400;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.2);
+  }
 }

@@ -1,4 +1,4 @@
-# Job Aggregator
+# RoleSync
 
 A comprehensive job aggregation and matching platform built with FastAPI and React that fetches job postings from multiple sources, matches them against user resumes, and sends personalized alerts.
 

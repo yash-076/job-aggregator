@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Button } from '../components/Button';
-import { Input, Select } from '../components/Input';
-import { Card } from '../components/Card';
-import { LoadingSpinner } from '../components/LoadingSpinner';
-import { ErrorMessage, SuccessMessage } from '../components/ErrorMessage';
-import { EmptyState } from '../components/EmptyState';
+import { Bell, Plus, Trash2, X, AlertCircle, CheckCircle, BellRing } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export function AlertManager() {
@@ -24,7 +19,6 @@ export function AlertManager() {
 
   const loadAlerts = async () => {
     if (!user?.email) return;
-    
     setLoadingAlerts(true);
     setError('');
     try {
@@ -38,23 +32,17 @@ export function AlertManager() {
     }
   };
 
-  // Load alerts when component mounts
   useEffect(() => {
-    if (user?.email) {
-      loadAlerts();
-    }
+    if (user?.email) loadAlerts();
   }, [user?.email]);
 
   const handleCreateAlert = async () => {
     setError('');
     setSuccess('');
-
-    // Validation
     if (!newAlert.name.trim()) {
       setError('Alert name is required');
       return;
     }
-
     setCreatingAlert(true);
     try {
       await api.createAlert({
@@ -62,13 +50,9 @@ export function AlertManager() {
         name: newAlert.name,
         filters: newAlert.filters,
       });
-      setNewAlert({
-        name: '',
-        filters: { title: '', company: '', location: '', job_type: '' },
-      });
+      setNewAlert({ name: '', filters: { title: '', company: '', location: '', job_type: '' } });
       setSuccess('Alert created successfully!');
       await loadAlerts();
-      // Auto-dismiss success message
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.message || 'Failed to create alert. Please try again.');
@@ -101,205 +85,148 @@ export function AlertManager() {
     { value: 'contract', label: 'Contract' },
   ];
 
+  const inputClass =
+    'w-full bg-[#0d1225] border border-landing-border rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all duration-200';
+
   return (
     <div className="space-y-6">
-      {/* Global Messages */}
+      {/* Messages */}
       {error && (
-        <ErrorMessage
-          message={error}
-          onDismiss={() => setError('')}
-          dismissible
-        />
+        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-between">
+          <div className="flex items-center gap-2"><AlertCircle className="w-4 h-4 text-red-400" /><p className="text-sm text-red-400">{error}</p></div>
+          <button onClick={() => setError('')} className="text-red-400 hover:text-red-300"><X className="w-4 h-4" /></button>
+        </div>
       )}
       {success && (
-        <SuccessMessage
-          message={success}
-          onDismiss={() => setSuccess('')}
-          dismissible
-        />
+        <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-between">
+          <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-400" /><p className="text-sm text-green-400">{success}</p></div>
+          <button onClick={() => setSuccess('')} className="text-green-400 hover:text-green-300"><X className="w-4 h-4" /></button>
+        </div>
       )}
 
-      {/* Create Alert Section */}
-      <Card title="Create New Alert" subtitle={`Alerts will be sent to ${user?.email}`}>
-        <div className="space-y-4">
-          <Input
-            label="Alert Name"
-            placeholder="e.g. Senior Engineer, Remote Design"
-            value={newAlert.name}
-            onChange={(e) =>
-              setNewAlert({ ...newAlert, name: e.target.value })
-            }
-            required
-          />
+      {/* Create Alert */}
+      <div className="landing-card rounded-2xl p-6 sm:p-8 border border-landing-border">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center">
+            <Plus className="w-5 h-5 text-blue-400" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-white">Create New Alert</h2>
+            <p className="text-xs text-gray-500">Alerts sent to {user?.email}</p>
+          </div>
+        </div>
 
-            {/* Filters Grid */}
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-3">Filter by (optional)</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Title Keyword"
-                  placeholder="e.g. Engineer, Designer"
-                  value={newAlert.filters.title}
-                  onChange={(e) =>
-                    setNewAlert({
-                      ...newAlert,
-                      filters: { ...newAlert.filters, title: e.target.value },
-                    })
-                  }
-                />
-                <Input
-                  label="Company"
-                  placeholder="e.g. Google, Apple"
-                  value={newAlert.filters.company}
-                  onChange={(e) =>
-                    setNewAlert({
-                      ...newAlert,
-                      filters: { ...newAlert.filters, company: e.target.value },
-                    })
-                  }
-                />
-                <Input
-                  label="Location"
-                  placeholder="e.g. San Francisco, Remote"
-                  value={newAlert.filters.location}
-                  onChange={(e) =>
-                    setNewAlert({
-                      ...newAlert,
-                      filters: { ...newAlert.filters, location: e.target.value },
-                    })
-                  }
-                />
-                <Select
-                  label="Job Type"
-                  value={newAlert.filters.job_type}
-                  onChange={(e) =>
-                    setNewAlert({
-                      ...newAlert,
-                      filters: {
-                        ...newAlert.filters,
-                        job_type: e.target.value,
-                      },
-                    })
-                  }
-                  options={jobTypeOptions}
-                />
+        <div className="space-y-5 mt-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Alert Name</label>
+            <input value={newAlert.name} onChange={(e) => setNewAlert({ ...newAlert, name: e.target.value })} placeholder="e.g. Senior Engineer, Remote Design" className={inputClass} />
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-gray-400 mb-3">Filter by (optional)</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Title Keyword</label>
+                <input value={newAlert.filters.title} onChange={(e) => setNewAlert({ ...newAlert, filters: { ...newAlert.filters, title: e.target.value } })} placeholder="e.g. Engineer" className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Company</label>
+                <input value={newAlert.filters.company} onChange={(e) => setNewAlert({ ...newAlert, filters: { ...newAlert.filters, company: e.target.value } })} placeholder="e.g. Google" className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Location</label>
+                <input value={newAlert.filters.location} onChange={(e) => setNewAlert({ ...newAlert, filters: { ...newAlert.filters, location: e.target.value } })} placeholder="e.g. Remote" className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Job Type</label>
+                <select value={newAlert.filters.job_type} onChange={(e) => setNewAlert({ ...newAlert, filters: { ...newAlert.filters, job_type: e.target.value } })} className={inputClass + ' cursor-pointer'}>
+                  {jobTypeOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
               </div>
             </div>
-
-            {/* Create Button */}
-            <div className="pt-2">
-              <Button
-                onClick={handleCreateAlert}
-                disabled={creatingAlert || !newAlert.name.trim()}
-                fullWidth
-              >
-                {creatingAlert ? 'Creating Alert...' : 'Create Alert'}
-              </Button>
-            </div>
           </div>
-        </Card>
 
-      {/* Alerts List Section */}
-      <Card title="Your Alerts">
+          <button onClick={handleCreateAlert} disabled={creatingAlert || !newAlert.name.trim()} className="landing-btn-primary w-full py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            {creatingAlert ? (
+              <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Creating...</>
+            ) : (
+              <><Plus className="w-4 h-4" /> Create Alert</>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Alerts List */}
+      <div className="landing-card rounded-2xl p-6 sm:p-8 border border-landing-border">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center">
+            <Bell className="w-5 h-5 text-blue-400" />
+          </div>
+          <h2 className="text-lg font-semibold text-white">Your Alerts</h2>
+        </div>
+
         {loadingAlerts && (
-          <div className="py-8">
-            <LoadingSpinner message="Loading alerts..." />
+          <div className="py-12 text-center">
+            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm text-gray-400">Loading alerts...</p>
           </div>
         )}
 
         {!loadingAlerts && alerts.length === 0 && (
-          <EmptyState
-            title="No alerts yet"
-            description="Create your first alert to start receiving job notifications"
-            icon="🔔"
-          />
+          <div className="py-12 text-center">
+            <BellRing className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-white mb-2">No alerts yet</h3>
+            <p className="text-sm text-gray-400">Create your first alert to start receiving job notifications</p>
+          </div>
         )}
 
         {!loadingAlerts && alerts.length > 0 && (
           <div className="space-y-3">
             {alerts.map(alert => (
-              <div key={alert.id} className="border border-gray-200 dark:border-slate-700 rounded-lg p-4 hover:border-gray-300 dark:hover:border-slate-600 transition">
+              <div key={alert.id} className="bg-[#0d1225] border border-landing-border rounded-xl p-4 hover:border-blue-500/20 transition-all">
                 <div className="flex justify-between items-start gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{alert.name}</h3>
-                      <span
-                        className={`inline-flex px-2 py-1 rounded text-xs font-medium ${
-                          alert.is_active
-                            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
-                            : 'bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-gray-300'
-                        }`}
-                      >
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-white">{alert.name}</h3>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium ${
+                        alert.is_active
+                          ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                          : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'
+                      }`}>
                         {alert.is_active ? '● Active' : '○ Inactive'}
                       </span>
                     </div>
-
-                    {/* Filters Display */}
-                    <div className="mt-2 space-y-1">
-                      {alert.filters.title && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          <span className="font-medium">Title:</span> {alert.filters.title}
-                        </p>
+                    <div className="flex flex-wrap gap-2">
+                      {alert.filters.title && <span className="text-xs px-2 py-1 rounded-lg bg-[#1a2344] text-gray-400">Title: {alert.filters.title}</span>}
+                      {alert.filters.company && <span className="text-xs px-2 py-1 rounded-lg bg-[#1a2344] text-gray-400">Company: {alert.filters.company}</span>}
+                      {alert.filters.location && <span className="text-xs px-2 py-1 rounded-lg bg-[#1a2344] text-gray-400">Location: {alert.filters.location}</span>}
+                      {alert.filters.job_type && <span className="text-xs px-2 py-1 rounded-lg bg-[#1a2344] text-gray-400">Type: {alert.filters.job_type}</span>}
+                      {!alert.filters.title && !alert.filters.company && !alert.filters.location && !alert.filters.job_type && (
+                        <span className="text-xs text-gray-500 italic">No filters applied</span>
                       )}
-                      {alert.filters.company && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          <span className="font-medium">Company:</span> {alert.filters.company}
-                        </p>
-                      )}
-                      {alert.filters.location && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          <span className="font-medium">Location:</span> {alert.filters.location}
-                        </p>
-                      )}
-                      {alert.filters.job_type && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          <span className="font-medium">Type:</span> {alert.filters.job_type}
-                        </p>
-                      )}
-                      {!alert.filters.title &&
-                        !alert.filters.company &&
-                        !alert.filters.location &&
-                        !alert.filters.job_type && (
-                          <p className="text-sm text-gray-500 dark:text-gray-500 italic">No filters applied</p>
-                        )}
                     </div>
                   </div>
 
-                  {/* Delete Button */}
                   {deleteConfirm === alert.id ? (
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => handleDeleteAlert(alert.id)}
-                        variant="danger"
-                        size="sm"
-                        disabled={deletingAlertId === alert.id}
-                      >
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={() => handleDeleteAlert(alert.id)} disabled={deletingAlertId === alert.id} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all disabled:opacity-50">
                         {deletingAlertId === alert.id ? 'Deleting...' : 'Confirm'}
-                      </Button>
-                      <Button
-                        onClick={() => setDeleteConfirm(null)}
-                        variant="secondary"
-                        size="sm"
-                        disabled={deletingAlertId === alert.id}
-                      >
+                      </button>
+                      <button onClick={() => setDeleteConfirm(null)} disabled={deletingAlertId === alert.id} className="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-400 border border-landing-border hover:border-gray-500 transition-all">
                         Cancel
-                      </Button>
+                      </button>
                     </div>
                   ) : (
-                    <Button
-                      onClick={() => setDeleteConfirm(alert.id)}
-                      variant="ghost"
-                      size="sm"
-                    >
-                      Delete
-                    </Button>
+                    <button onClick={() => setDeleteConfirm(alert.id)} className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   )}
                 </div>
               </div>
             ))}
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 }

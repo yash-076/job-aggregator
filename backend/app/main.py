@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 # CORS origins from environment
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost:3000"
+    "http://localhost:3000,http://localhost:5173"
 ).split(",")
 
 

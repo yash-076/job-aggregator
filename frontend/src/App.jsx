@@ -1,7 +1,9 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Header, Nav, Footer } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { DarkLayout } from './components/landing/DarkLayout';
+import { AppDarkLayout } from './components/landing/AppDarkLayout';
+import LandingPage from './pages/LandingPage';
 import { JobSearch } from './pages/JobSearch';
 import { AlertManager } from './pages/AlertManager';
 import { ResumeMatch } from './pages/ResumeMatch';
@@ -18,54 +20,33 @@ import './index.css';
 
 /**
  * Main App component
- * Handles page routing with React Router
- * Follows accessible, semantic HTML practices
+ * - Landing page has its own standalone layout
+ * - Public pages (signup, signin, about, etc.) use DarkLayout (LandingNavbar + LandingFooter)
+ * - Protected pages (search, alerts, resume) use AppDarkLayout (AppNavbar + LandingFooter)
  */
-function AppContent() {
-  return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/signup" element={<SignUp />} />
-      <Route path="/signin" element={<SignIn />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/blog" element={<Blog />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/privacy" element={<Privacy />} />
-      <Route path="/terms" element={<Terms />} />
-      
-      {/* Protected routes - require authentication */}
-      <Route path="/" element={<ProtectedRoute><JobSearch /></ProtectedRoute>} />
-      <Route path="/search" element={<ProtectedRoute><JobSearch /></ProtectedRoute>} />
-      <Route path="/alerts" element={<ProtectedRoute><AlertManager /></ProtectedRoute>} />
-      <Route path="/resume" element={<ProtectedRoute><ResumeMatch /></ProtectedRoute>} />
-    </Routes>
-  );
-}
-
-function AppLayout() {
-  return (
-    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-slate-950 transition-colors duration-200">
-      <Header />
-      <Nav />
-
-      {/* Main Content Area */}
-      <main className="flex-1 w-full">
-        <div className="container-max py-8">
-          <AppContent />
-        </div>
-      </main>
-
-      <Footer />
-    </div>
-  );
-}
-
 export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
-          <AppLayout />
+          <Routes>
+            {/* Landing page — standalone layout */}
+            <Route path="/" element={<LandingPage />} />
+
+            {/* Public pages — dark layout with landing navbar */}
+            <Route path="/signup" element={<DarkLayout><SignUp /></DarkLayout>} />
+            <Route path="/signin" element={<DarkLayout><SignIn /></DarkLayout>} />
+            <Route path="/about" element={<DarkLayout><About /></DarkLayout>} />
+            <Route path="/blog" element={<DarkLayout><Blog /></DarkLayout>} />
+            <Route path="/contact" element={<DarkLayout><Contact /></DarkLayout>} />
+            <Route path="/privacy" element={<DarkLayout><Privacy /></DarkLayout>} />
+            <Route path="/terms" element={<DarkLayout><Terms /></DarkLayout>} />
+
+            {/* Protected pages — app dark layout with authenticated navbar */}
+            <Route path="/search" element={<ProtectedRoute><AppDarkLayout><JobSearch /></AppDarkLayout></ProtectedRoute>} />
+            <Route path="/alerts" element={<ProtectedRoute><AppDarkLayout><AlertManager /></AppDarkLayout></ProtectedRoute>} />
+            <Route path="/resume" element={<ProtectedRoute><AppDarkLayout><ResumeMatch /></AppDarkLayout></ProtectedRoute>} />
+          </Routes>
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>
