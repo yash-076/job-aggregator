@@ -60,7 +60,11 @@ async def _generate_and_store_embeddings(saved_jobs, repo):
 
 
 async def fetch_and_save_job():
-    """Background job to fetch, save, and embed jobs every hour."""
+    """Background job to fetch and save jobs every hour.
+    Embeddings are NOT generated here — the backfill job running
+    every minute will pick up new jobs and generate embeddings
+    incrementally, avoiding timeouts on free-tier services.
+    """
     logger.info("Starting fetch and save job...")
     try:
         fetcher = FetcherService()
@@ -71,10 +75,7 @@ async def fetch_and_save_job():
             try:
                 repo = JobRepository(db)
                 saved_count, saved_jobs = repo.save_jobs_batch(unique_jobs)
-                logger.info(f"Fetch and save job completed: {saved_count} jobs saved")
-
-                # Generate embeddings for the newly saved jobs
-                await _generate_and_store_embeddings(saved_jobs, repo)
+                logger.info(f"Fetch and save job completed: {saved_count} jobs saved (embeddings deferred to backfill)")
                 
                 # Check alerts and queue notifications (async)
                 if saved_count > 0 and saved_jobs:
@@ -108,22 +109,26 @@ async def fetch_and_save_job():
 
 async def backfill_embeddings_job():
     """
-    Background safety-net job: finds active jobs that have no embedding
-    and generates + stores embeddings in batches.
-    Runs every 30 minutes.
+    Background job that runs every minute to incrementally generate
+    embeddings for jobs that don't have them yet.
+
+    Processes a small batch each run (BACKFILL_BATCH_SIZE) to stay
+    within free-tier timeout limits. Over successive runs every
+    minute, all jobs will eventually get embeddings.
     """
-    logger.info("Starting embedding backfill job...")
+    BACKFILL_BATCH_SIZE = 1  # process one job per minute to avoid free-tier timeouts
+
     try:
         db = SessionLocal()
         try:
             repo = JobRepository(db)
-            jobs_missing = repo.get_jobs_without_embeddings(limit=500)
+            jobs_missing = repo.get_jobs_without_embeddings(limit=BACKFILL_BATCH_SIZE)
 
             if not jobs_missing:
-                logger.info("No jobs missing embeddings, backfill skipped")
+                # Nothing to do — all jobs have embeddings
                 return
 
-            logger.info(f"Found {len(jobs_missing)} jobs without embeddings, backfilling...")
+            logger.info(f"Backfill: processing {len(jobs_missing)} jobs without embeddings...")
             await _generate_and_store_embeddings(jobs_missing, repo)
         finally:
             db.close()
@@ -217,12 +222,12 @@ def start_background_scheduler():
         name="Fetch and save jobs every 1 hour",
     )
 
-    # Add job to backfill missing embeddings every 30 minutes
+    # Add job to backfill missing embeddings every 1 minute
     scheduler.add_job(
         backfill_embeddings_job,
-        IntervalTrigger(minutes=30),
+        IntervalTrigger(minutes=1),
         id="backfill_embeddings_job",
-        name="Backfill missing job embeddings every 30 minutes",
+        name="Backfill missing job embeddings every 1 minute",
     )
 
     # Add job to process email queue every 5 minutes
