@@ -1,6 +1,6 @@
 # RoleSync Frontend
 
-Modern React + Vite + Tailwind frontend for the RoleSync platform.
+React 18 + Vite + Tailwind CSS frontend for the RoleSync job aggregation platform.
 
 ## Setup
 
@@ -10,47 +10,40 @@ npm install
 npm run dev
 ```
 
-Frontend runs on `http://localhost:3000`
-
-## Features
-
-- **Search Jobs**: Filter by title, company, location, job type
-- **Manage Alerts**: Create and manage job alerts with filters
-- **Resume Matching**: Upload PDF resume and get ranked job matches
-- **Dark Mode**: Toggle theme with persistent preference
-- **Static Pages**: About, Blog, Contact, Privacy, Terms
+Runs at `http://localhost:5173`. Vite proxies `/api/*` to the backend on port 8000.
 
 ## Routing
 
-The frontend uses React Router for URL-based routing.
+| Route | Layout | Auth | Page |
+|-------|--------|------|------|
+| `/` | Standalone | Public | Landing page |
+| `/signin` | DarkLayout | Public | Sign in |
+| `/signup` | DarkLayout | Public | Sign up |
+| `/about` | DarkLayout | Public | About |
+| `/blog` | DarkLayout | Public | Blog |
+| `/contact` | DarkLayout | Public | Contact |
+| `/privacy` | DarkLayout | Public | Privacy Policy |
+| `/terms` | DarkLayout | Public | Terms of Service |
+| `/search` | AppDarkLayout | Protected | Job search & filters |
+| `/alerts` | AppDarkLayout | Protected | Alert management |
+| `/resume` | AppDarkLayout | Protected | Resume matching |
 
-| Route | Page |
-| --- | --- |
-| `/` | Search Jobs |
-| `/search` | Search Jobs |
-| `/alerts` | Alerts |
-| `/resume` | Resume Match |
-| `/about` | About |
-| `/blog` | Blog |
-| `/contact` | Contact |
-| `/privacy` | Privacy Policy |
-| `/terms` | Terms of Service |
+**DarkLayout** = LandingNavbar + LandingFooter (public pages)  
+**AppDarkLayout** = AppNavbar + LandingFooter (authenticated pages)
 
-## API Proxy
+## Key Dependencies
 
-Vite is configured to proxy API calls from `/api/*` to `http://localhost:8000/*`.
-
-Ensure backend is running on port 8000:
-
-```bash
-cd backend
-python -m uvicorn app.main:app --reload --app-dir backend --port 8000
-```
+- `react` / `react-dom` 18
+- `react-router-dom` 6
+- `lucide-react` (icons)
+- `tailwindcss` 3
+- `vite` + `@vitejs/plugin-react`
 
 ## Build
 
 ```bash
-npm run build
+npm run build    # Output: dist/
+npm run preview  # Preview production build
 ```
 
-Output: `dist/`
+Deployed to **Vercel** — see `vercel.json` for SPA rewrite config.

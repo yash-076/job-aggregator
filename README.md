@@ -1,63 +1,196 @@
 # RoleSync
 
-A comprehensive job aggregation and matching platform built with FastAPI and React that fetches job postings from multiple sources, matches them against user resumes, and sends personalized alerts.
+AI-powered job aggregation platform that pulls listings from multiple sources, deduplicates them, and matches them against your resume — all in one place.
+
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React_18-61DAFB?style=flat&logo=react&logoColor=black)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white)
+
+## What It Does
+
+| Feature | Description |
+|---------|-------------|
+| **Job Aggregation** | Fetches listings from the Adzuna API and company career pages (Google, Meta, Microsoft) on a scheduled background job |
+| **Deduplication** | Removes duplicate postings across sources using intelligent fuzzy matching |
+| **Normalization** | Standardizes titles, locations, and salary formats so everything is comparable |
+| **Resume Matching** | Upload a PDF resume and get jobs ranked by TF-IDF similarity score |
+| **Smart Alerts** | Set keyword/location filters and receive email notifications when new matches appear |
+| **Auth** | JWT-based signup/signin with protected routes |
+| **Search & Filter** | Full-text search with filters for title, company, location, job type, and salary range |
+| **Redis Caching** | Frequently accessed data is cached to keep responses fast |
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Python 3.10+, FastAPI, SQLAlchemy 2, Pydantic v2 |
+| **Database** | PostgreSQL 12+ |
+| **Cache** | Redis 6+ |
+| **Scraping** | httpx, BeautifulSoup (lxml) |
+| **Resume Parsing** | pdfplumber |
+| **Scheduling** | APScheduler |
+| **Auth** | python-jose (JWT), passlib + bcrypt |
+| **Email** | SMTP |
+| **Frontend** | React 18, React Router 6, Vite |
+| **Styling** | Tailwind CSS 3, Lucide React icons |
+| **Deployment** | Render (backend Docker), Vercel (frontend SPA) |
 
 ## Project Structure
 
 ```
 job-aggregator/
-├── backend/              # Python FastAPI backend
+├── backend/
 │   ├── app/
-│   │   ├── api/              # API routes
-│   │   ├── fetchers/         # Job source fetchers
-│   │   ├── models/           # Database models
-│   │   ├── services/         # Business logic
-│   │   ├── core/             # Core configuration
-│   │   ├── configs/companies/# Job source configs
+│   │   ├── api/                  # Route handlers + Pydantic schemas
+│   │   │   ├── auth_routes.py    # POST /auth/signup, /auth/login
+│   │   │   ├── job_routes.py     # GET /jobs, /jobs/{id}, /jobs/search
+│   │   │   ├── alert_routes.py   # CRUD /alerts
+│   │   │   ├── match_routes.py   # POST /match/resume
+│   │   │   ├── auth_dependencies.py
+│   │   │   └── schemas.py
+│   │   ├── fetchers/             # Job source connectors
+│   │   │   ├── adzuna_api.py     # Adzuna REST API
+│   │   │   ├── career_page.py    # HTML career page scraper
+│   │   │   └── base.py           # Abstract fetcher
+│   │   ├── services/             # Business logic
+│   │   │   ├── job_matcher.py    # TF-IDF resume ↔ job matching
+│   │   │   ├── dedup_service.py  # Fuzzy deduplication
+│   │   │   ├── normalizer.py     # Data normalization
+│   │   │   ├── resume_parser.py  # PDF text extraction
+│   │   │   ├── alert_service.py  # Alert evaluation & dispatch
+│   │   │   ├── email_service.py  # SMTP email sending
+│   │   │   ├── email_queue_service.py
+│   │   │   ├── fetcher_service.py
+│   │   │   ├── job_repository.py
+│   │   │   └── redis_sync_service.py
+│   │   ├── models/               # SQLAlchemy ORM models
+│   │   │   ├── job_model.py
+│   │   │   ├── alert_model.py
+│   │   │   └── user_model.py
+│   │   ├── core/                 # Config, DB, Redis, scheduler
+│   │   │   ├── config.py
+│   │   │   ├── database.py
+│   │   │   ├── init_db.py
+│   │   │   ├── jwt_handler.py
+│   │   │   ├── redis.py
+│   │   │   └── scheduler.py
+│   │   ├── configs/companies/    # YAML scraper configs
+│   │   │   ├── google.yaml
+│   │   │   ├── meta.yaml
+│   │   │   └── microsoft.yaml
 │   │   └── main.py
-│   ├── scripts/          # Utility scripts
-│   ├── tests/            # Unit tests
+│   ├── scripts/
+│   │   └── fetch_and_save.py     # Manual fetch script
+│   ├── tests/
+│   │   ├── test_fetchers.py
+│   │   ├── test_normalization_dedup.py
+│   │   └── test_resume_match.py
+│   ├── Dockerfile
 │   └── requirements.txt
 │
-├── frontend/            # React + Vite + Tailwind
+├── frontend/
 │   ├── src/
-│   │   ├── components/   # Reusable UI components
-│   │   ├── pages/        # Application pages
-│   │   ├── services/     # API integration
-│   │   ├── context/      # State management
+│   │   ├── pages/                # Route-level pages
+│   │   │   ├── LandingPage.jsx   # Public marketing page
+│   │   │   ├── SignIn.jsx        # Auth
+│   │   │   ├── SignUp.jsx
+│   │   │   ├── JobSearch.jsx     # Protected — search & filter jobs
+│   │   │   ├── AlertManager.jsx  # Protected — manage alerts
+│   │   │   ├── ResumeMatch.jsx   # Protected — upload resume & match
+│   │   │   ├── About.jsx
+│   │   │   ├── Blog.jsx
+│   │   │   ├── Contact.jsx
+│   │   │   ├── Privacy.jsx
+│   │   │   └── Terms.jsx
+│   │   ├── components/
+│   │   │   ├── landing/          # Landing & app layout shells
+│   │   │   │   ├── DarkLayout.jsx      # Public page wrapper
+│   │   │   │   ├── AppDarkLayout.jsx   # Authenticated page wrapper
+│   │   │   │   ├── LandingNavbar.jsx
+│   │   │   │   ├── AppNavbar.jsx
+│   │   │   │   ├── LandingFooter.jsx
+│   │   │   │   ├── HeroSection.jsx
+│   │   │   │   ├── FeaturesSection.jsx
+│   │   │   │   ├── HowItWorksSection.jsx
+│   │   │   │   ├── JobSourcesSection.jsx
+│   │   │   │   ├── PricingSection.jsx
+│   │   │   │   ├── FAQSection.jsx
+│   │   │   │   ├── CTASection.jsx
+│   │   │   │   └── StatsSection.jsx
+│   │   │   ├── ProtectedRoute.jsx
+│   │   │   └── LoadingSpinner.jsx
+│   │   ├── context/
+│   │   │   ├── AuthContext.jsx   # JWT auth state
+│   │   │   └── ThemeContext.jsx  # Dark mode preference
+│   │   ├── services/
+│   │   │   └── api.js            # Fetch wrapper for backend API
 │   │   ├── App.jsx
-│   │   └── main.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
 │   ├── index.html
 │   ├── vite.config.js
 │   ├── tailwind.config.js
-│   ├── package.json
-│   └── README.md
+│   ├── vercel.json
+│   └── package.json
 │
-├── docs/                # Documentation
-└── .env.example         # Environment template
+├── render.yaml                   # Render deployment config
+└── docs/
 ```
 
 ## Quick Start
 
-### Backend
+### Prerequisites
+
+- Python 3.10+
+- Node.js 18+ & npm
+- PostgreSQL 12+
+- Redis 6+
+
+### 1. Clone & configure
+
+```bash
+git clone <repo-url>
+cd job-aggregator
+```
+
+Create `backend/.env`:
+
+```ini
+DATABASE_URL=postgresql://user:password@localhost:5432/job_aggregator
+REDIS_URL=redis://localhost:6379
+
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASSWORD=your_app_password
+FROM_EMAIL=your_email@gmail.com
+
+ADZUNA_APP_ID=your_app_id
+ADZUNA_APP_KEY=your_app_key
+ADZUNA_COUNTRY=us
+
+SECRET_KEY=your_jwt_secret
+LOG_LEVEL=INFO
+```
+
+### 2. Backend
 
 ```bash
 cd backend
 python -m venv venv
-
-# Windows
-venv\Scripts\activate
-# macOS/Linux
-source venv/bin/activate
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # macOS / Linux
 
 pip install -r requirements.txt
-python -m app.core.init_db  # Initialize database
-python -m uvicorn app.main:app --reload --port 8000
+python -m app.core.init_db   # Create tables
+uvicorn app.main:app --reload --port 8000
 ```
 
-API: `http://localhost:8000`
+API docs available at `http://localhost:8000/docs` (Swagger UI).
 
-### Frontend
+### 3. Frontend
 
 ```bash
 cd frontend
@@ -65,238 +198,78 @@ npm install
 npm run dev
 ```
 
-Frontend: `http://localhost:5173`
-
-## Features
-
-- **Job Aggregation**: Fetches job postings from multiple sources (Adzuna API, company career pages)
-- **Smart Deduplication**: Removes duplicate job listings across sources with intelligent matching
-- **Job Normalization**: Standardizes job data across different sources for consistency
-- **Resume Matching**: AI-powered matching between resumes and job descriptions using TF-IDF/similarity algorithms
-- **Job Alerts**: Email notifications for job matches based on user preferences and criteria
-- **Dark Mode**: Full dark mode support with persistent theme preference
-- **Search & Filter**: Advanced job search with location, salary, and skill filtering
-- **Real-time Sync**: Redis-based caching for improved performance and reduced database load
-
-## Technology Stack
-
-### Backend
-- **Framework**: FastAPI - Modern, fast web framework for building APIs
-- **Database**: PostgreSQL - Robust relational database
-- **Cache**: Redis - In-memory data store for caching and sessions
-- **Task Scheduling**: APScheduler - For background job fetching
-- **Email**: SMTP - Email alert delivery
-- **Language**: Python 3.8+
-
-### Frontend
-- **Framework**: React 18+ - UI library
-- **Build Tool**: Vite - Fast build tool and dev server
-- **Styling**: Tailwind CSS - Utility-first CSS framework
-- **State Management**: Context API - React built-in state management
-- **HTTP Client**: Axios - Promise-based HTTP client
-
-## Architecture Overview
-
-### Backend Structure
-
-- **API Routes** (`app/api/`): RESTful endpoints for jobs, alerts, and matching
-  - `job_routes.py` - Job search and filtering endpoints
-  - `alert_routes.py` - User alert management
-  - `match_routes.py` - Resume matching endpoints
-  
-- **Fetchers** (`app/fetchers/`): Job source connectors
-  - `adzuna_api.py` - Adzuna job API integration
-  - `career_page.py` - Web scraping for company career pages
-  - `base.py` - Base fetcher class
-  
-- **Services** (`app/services/`): Business logic
-  - `job_matcher.py` - Resume-to-job matching logic
-  - `dedup_service.py` - Deduplication engine
-  - `email_service.py` - Email sending
-  - `alert_service.py` - Alert management
-  - `resume_parser.py` - Resume text extraction
-  - `normalizer.py` - Job data normalization
-  
-- **Models** (`app/models/`): SQLAlchemy ORM models
-  - `job_model.py` - Job listings
-  - `alert_model.py` - User alerts
-  
-- **Core** (`app/core/`): Infrastructure
-  - `database.py` - Database setup
-  - `config.py` - Configuration management
-  - `redis.py` - Redis client
-  - `scheduler.py` - Background job scheduler
-
-### Frontend Structure
-
-- **Pages** (`src/pages/`): Main application pages
-  - `JobSearch.jsx` - Browse and search jobs
-  - `ResumeMatch.jsx` - Upload resume and match with jobs
-  - `AlertManager.jsx` - Create and manage job alerts
-  - About, Contact, Blog, Terms, Privacy pages
-  
-- **Components** (`src/components/`): Reusable UI components
-  - `Button.jsx`, `Card.jsx`, `Input.jsx` - Basic components
-  - `Layout.jsx` - Main layout wrapper
-  - `LoadingSpinner.jsx`, `ErrorMessage.jsx` - Utility components
-  
-- **Services** (`src/services/`): API integration
-  - `api.js` - Axios instance and API calls
-  
-- **Context** (`src/context/`): State management
-  - `ThemeContext.jsx` - Dark mode theme management
+Opens at `http://localhost:5173`. The Vite dev server proxies `/api/*` requests to the backend on port 8000.
 
 ## API Endpoints
 
+### Auth
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/auth/signup` | Register a new user |
+| `POST` | `/auth/login` | Authenticate & receive JWT |
+
 ### Jobs
-```
-GET  /api/jobs              - List all jobs with pagination
-GET  /api/jobs/{id}         - Get job details
-POST /api/jobs/search       - Search jobs with filters
-```
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/jobs` | List jobs (paginated, filterable) |
+| `GET` | `/api/jobs/{id}` | Get job details |
+| `POST` | `/api/jobs/search` | Full-text search with filters |
 
 ### Alerts
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/alerts` | List user's alerts |
+| `POST` | `/api/alerts` | Create an alert |
+| `PUT` | `/api/alerts/{id}` | Update an alert |
+| `DELETE` | `/api/alerts/{id}` | Delete an alert |
+
+### Resume Matching
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/match/resume` | Upload PDF resume & get ranked job matches |
+
+## How It Works
+
 ```
-GET    /api/alerts          - List user alerts
-POST   /api/alerts          - Create new alert
-GET    /api/alerts/{id}     - Get alert details
-PUT    /api/alerts/{id}     - Update alert
-DELETE /api/alerts/{id}     - Delete alert
-```
-
-### Matching
-```
-POST /api/match/upload      - Upload resume for matching
-POST /api/match             - Match resume against jobs
-GET  /api/match/results     - Get matching results
-```
-
-## Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-# Database Configuration
-DATABASE_URL=postgresql://user:password@localhost:5432/job_aggregator
-
-# Redis Configuration
-REDIS_URL=redis://localhost:6379
-
-# Email Configuration
-SMTP_SERVER=smtp.gmail.com
-SMTP_PORT=587
-SENDER_EMAIL=your-email@gmail.com
-SENDER_PASSWORD=your-app-password
-
-# API Keys
-ADZUNA_API_KEY=your-adzuna-api-key
-ADZUNA_APP_ID=your-app-id
-
-# Job Scheduler
-JOB_FETCH_INTERVAL=3600  # 1 hour in seconds
+┌────────────────┐     ┌──────────────┐     ┌─────────────┐
+│  Adzuna API    │────▶│              │     │  PostgreSQL  │
+├────────────────┤     │   Fetcher    │────▶│   (jobs,     │
+│  Career Pages  │────▶│   Service    │     │   users,     │
+│  (Google, Meta,│     │              │     │   alerts)    │
+│   Microsoft)   │     └──────┬───────┘     └──────┬──────┘
+└────────────────┘            │                    │
+                     Normalize + Dedup             │
+                              │                    │
+                     ┌────────▼────────┐    ┌──────▼──────┐
+                     │  APScheduler    │    │   FastAPI    │
+                     │  (runs every    │    │   REST API   │
+                     │   N seconds)    │    └──────┬──────┘
+                     └─────────────────┘           │
+                                            ┌──────▼──────┐
+                                            │  React SPA  │
+                                            │  (Vite +    │
+                                            │  Tailwind)  │
+                                            └─────────────┘
 ```
 
-## Installation
+1. **APScheduler** triggers the fetcher service on a fixed interval.
+2. **Fetchers** pull raw listings from Adzuna and configured career pages.
+3. **Normalizer** standardizes fields; **Dedup** removes duplicates by fuzzy title + company matching.
+4. Clean jobs are stored in **PostgreSQL** and cached in **Redis**.
+5. The **FastAPI** layer exposes search, alert, and matching endpoints.
+6. The **React** frontend consumes the API — protected routes require JWT auth.
+7. **Alert service** evaluates new jobs against saved filters and queues email notifications.
 
-### Prerequisites
-- Python 3.8 or higher
-- Node.js 16+ and npm
-- PostgreSQL 12+
-- Redis 5+
+## Job Source Configuration
 
-### Detailed Backend Setup
+Career page scrapers are driven by YAML configs in `backend/app/configs/companies/`:
 
-```bash
-cd backend
-
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment
-# Windows
-venv\Scripts\activate
-# macOS/Linux
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Initialize database
-python -m app.core.init_db
-
-# Run development server
-python -m uvicorn app.main:app --reload --port 8000
-```
-
-### Detailed Frontend Setup
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-```
-
-## Development
-
-### Running Tests
-
-```bash
-cd backend
-
-# Run all tests
-pytest tests/
-
-# Run specific test file
-pytest tests/test_fetchers.py -v
-
-# Run with coverage
-pytest --cov=app tests/
-```
-
-### Database Migrations
-
-```bash
-cd backend
-
-# Create new migration
-alembic revision --autogenerate -m "description"
-
-# Apply migrations
-alembic upgrade head
-
-# Rollback last migration
-alembic downgrade -1
-```
-
-### Project Scripts
-
-```bash
-# Fetch jobs from configured sources
-cd backend/scripts
-python fetch_and_save.py
-
-# Initialize database with schema
-python -m app.core.init_db
-```
-
-## Configuration
-
-### Job Sources
-
-Job sources are configured in `backend/app/configs/companies/` with YAML files:
-
-**Example: google.yaml**
 ```yaml
+# google.yaml
 name: "Google Careers"
 url: "https://careers.google.com/jobs/results/"
 enabled: true
@@ -308,150 +281,43 @@ fields:
   salary: ".salary-range"
 ```
 
-### Supported Job Sources
-- **Adzuna API** - Major job aggregator API
-- **Google Careers** - Web scraping
-- **Meta Careers** - Web scraping
-- **Microsoft Careers** - Web scraping
-
-## Phases Completed
-
-- ✅ **Phase 0** - Project setup and architecture
-- ✅ **Phase 1** - Database schema & ORM models
-- ✅ **Phase 2** - Job fetching (career pages + Adzuna API)
-- ✅ **Phase 3** - Data normalization & deduplication
-- ✅ **Phase 4** - Job search & detail APIs
-- ✅ **Phase 5** - Alert engine with email notifications
-- ✅ **Phase 6** - Resume vs JD matching algorithm
-- ✅ **Phase 7** - Responsive React frontend with dark mode
-- ⏳ **Phase 8** - Deployment & documentation
-
-## Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes and commit (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Code Standards
-- Follow PEP 8 for Python code
-- Use ESLint configuration for JavaScript
-- Write tests for new features
-- Update documentation as needed
+Add a new company by creating another YAML file in the same directory.
 
 ## Testing
 
-### Backend Tests
-- **test_fetchers.py** - Job fetching functionality
-- **test_normalization_dedup.py** - Data normalization and deduplication
-- **test_resume_match.py** - Resume matching algorithm
-
-### Frontend Testing
-- Component testing with Vitest
-- Integration testing with end-to-end tests
-
 ```bash
-cd frontend
-npm run test
+cd backend
+
+pytest tests/ -v                   # Run all tests
+pytest tests/test_fetchers.py -v   # Fetcher tests
+pytest tests/test_normalization_dedup.py -v
+pytest tests/test_resume_match.py -v
+pytest --cov=app tests/            # With coverage
 ```
 
-## Performance Optimization
+## Deployment
 
-- **Redis Caching**: Frequently accessed job data cached in Redis
-- **Database Indexing**: Proper indexes on job title, location, and date fields
-- **Frontend Code Splitting**: Vite automatically chunks code for faster loading
-- **Lazy Loading**: Components loaded on-demand
-- **API Response Pagination**: Jobs returned in manageable chunks
-- **Query Optimization**: Efficient database queries with proper joins
+| Service | Platform | Config |
+|---------|----------|--------|
+| Backend | Render (Docker) | `render.yaml` — Gunicorn + Uvicorn workers |
+| Frontend | Vercel (SPA) | `vercel.json` — SPA rewrite rules |
 
-## Known Issues & Limitations
-
-- Email alerts currently support SMTP only (OAuth2 coming soon)
-- Resume matching requires properly formatted PDF or text files
-- Adzuna API rate limiting may require API key upgrade for high volume
-- Web scraping may break if career page markup changes
-
-## Future Enhancements
-
-- [ ] Support for additional job sources (LinkedIn, Indeed, etc.)
-- [ ] Advanced ML-based job recommendation engine using collaborative filtering
-- [ ] User authentication and personalized dashboards
-- [ ] Mobile app for iOS/Android
-- [ ] Multiple resume support and comparison
-- [ ] Browser push notifications
-- [ ] LinkedIn integration and profile sync
-- [ ] Salary trend analysis
-- [ ] Job market insights and statistics
-- [ ] Interview preparation resources
+The backend Dockerfile and `render.yaml` are preconfigured. Push to main to trigger deploys.
 
 ## Troubleshooting
 
-### Backend Issues
-
-**Connection refused on port 8000**
-```bash
-# Check if port is in use
-# Windows
-netstat -ano | findstr :8000
-# macOS/Linux
-lsof -i :8000
-
-# Kill the process if needed and restart
-```
-
-**Database connection error**
-- Verify PostgreSQL is running: `pg_isready`
-- Check DATABASE_URL in `.env` file is correct
-- Ensure database exists: `createdb job_aggregator`
-- Run migrations: `alembic upgrade head`
-
-**Redis connection error**
-- Verify Redis is running: `redis-cli ping`
-- Check REDIS_URL in `.env` file
-
-### Frontend Issues
-
-**Port 3000 already in use**
-```bash
-# Use alternative port
-npm run dev -- --port 5173
-```
-
-**Module not found errors**
-```bash
-# Clear node_modules and reinstall
-rm -rf node_modules package-lock.json
-npm install
-```
-
-**Dark mode not persisting**
-- Check localStorage is enabled in browser
-- Clear browser cache and reload
-- Verify ThemeContext is properly initialized
-
-## Documentation
-
-- [Backend API Documentation](./backend/README.md)
-- [Frontend Development Guide](./frontend/README.md)
-- [Dark Mode Implementation](./frontend/DOCUMENTATION/DARK_MODE.md)
-- [Architecture Overview](./docs/README.md)
+| Problem | Fix |
+|---------|-----|
+| Port 8000 in use | `netstat -ano \| findstr :8000` → kill the process |
+| DB connection error | Verify PostgreSQL is running and `DATABASE_URL` is correct |
+| Redis connection error | Verify Redis is running and `REDIS_URL` is correct |
+| Module not found (frontend) | `rm -rf node_modules package-lock.json && npm install` |
+| Adzuna rate limit | Upgrade your Adzuna API plan or increase fetch interval |
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Contact & Support
-
-For questions, issues, or suggestions:
-- Open an issue on GitHub
-- Check existing documentation
-- Contact the development team
+MIT
 
 ---
 
-**Last Updated**: February 2026  
-**Status**: Active Development  
-**Maintainers**: Development Team
+**Status**: Active Development
