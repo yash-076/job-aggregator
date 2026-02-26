@@ -222,12 +222,12 @@ def start_background_scheduler():
         name="Fetch and save jobs every 1 hour",
     )
 
-    # Add job to backfill missing embeddings every 1 minute
+    # Add job to backfill missing embeddings every 3 minutes
     scheduler.add_job(
         backfill_embeddings_job,
-        IntervalTrigger(minutes=1),
+        IntervalTrigger(minutes=3),
         id="backfill_embeddings_job",
-        name="Backfill missing job embeddings every 1 minute",
+        name="Backfill missing job embeddings every 3 minutes",
     )
 
     # Add job to process email queue every 5 minutes
