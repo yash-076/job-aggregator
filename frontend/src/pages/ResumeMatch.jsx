@@ -63,16 +63,16 @@ export function ResumeMatch() {
   };
 
   const getScoreColor = (score) => {
-    if (score >= 25) return 'text-green-400';
-    if (score >= 20) return 'text-blue-400';
-    if (score >= 15) return 'text-yellow-400';
+    if (score >= 70) return 'text-green-400';
+    if (score >= 50) return 'text-blue-400';
+    if (score >= 30) return 'text-yellow-400';
     return 'text-gray-400';
   };
 
   const getScoreBarColor = (score) => {
-    if (score >= 25) return 'bg-green-500';
-    if (score >= 20) return 'bg-blue-500';
-    if (score >= 15) return 'bg-yellow-500';
+    if (score >= 70) return 'bg-green-500';
+    if (score >= 50) return 'bg-blue-500';
+    if (score >= 30) return 'bg-yellow-500';
     return 'bg-gray-500';
   };
 
@@ -197,7 +197,7 @@ export function ResumeMatch() {
                         <p className={`text-2xl font-bold ${getScoreColor(match.match_score)}`}>{Math.round(match.match_score)}</p>
                         <p className="text-xs text-gray-500 mt-1">Score</p>
                         <div className="mt-2 w-full bg-[#1a2344] rounded-full h-1.5">
-                          <div className={`h-1.5 rounded-full transition-all ${getScoreBarColor(match.match_score)}`} style={{ width: `${Math.min(match.match_score * 2, 100)}%` }} />
+                          <div className={`h-1.5 rounded-full transition-all ${getScoreBarColor(match.match_score)}`} style={{ width: `${Math.min(match.match_score, 100)}%` }} />
                         </div>
                       </div>
                     </div>

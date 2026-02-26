@@ -13,6 +13,7 @@ from app.api.match_routes import router as match_router
 from app.api.auth_routes import router as auth_router
 
 logging.basicConfig(level=settings.log_level)
+logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 # CORS origins from environment

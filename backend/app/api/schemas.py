@@ -82,13 +82,15 @@ class AlertResponse(BaseModel):
 class JobMatchResponse(BaseModel):
     """Single job with match score."""
     job: JobResponse
-    match_score: int
-    matched_keywords: int
+    match_score: float          # hybrid score 0-100
+    keyword_score: float = 0.0  # keyword-only component 0-100
+    semantic_score: float = 0.0 # cosine similarity component 0-100
 
 
 class ResumeMatchResponse(BaseModel):
     """Resume matching results."""
     total_jobs_scored: int
+    matching_mode: str = "hybrid"  # "hybrid" | "keyword_only"
     top_matches: List[JobMatchResponse]
 
 

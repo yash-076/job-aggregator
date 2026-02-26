@@ -24,10 +24,14 @@ class Settings(BaseSettings):
     adzuna_country: str = ""
     adzuna_base_url: str = "https://api.adzuna.com/v1/api"
     adzuna_job_queries: str = "software engineer,python developer,data scientist"  # comma-separated
+
+    # Embedding microservice settings
+    embedding_service_url: str = ""
+    embedding_api_key: str = ""
+    embedding_batch_size: int = 50  # max texts per embed-batch call
     
     class Config:
         env_file = str(Path(__file__).parent.parent / ".env")
         extra = "ignore"  # Ignore extra fields
-
 
 settings = Settings()

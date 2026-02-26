@@ -35,6 +35,9 @@ class Job(Base):
     
     # Additional fields (skills, requirements, etc.)
     job_metadata = Column(JSON, default=lambda: {})
+
+    # Vector embedding for semantic matching (list of floats)
+    embedding = Column(JSON, nullable=True)
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

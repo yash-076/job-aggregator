@@ -8,6 +8,7 @@ from app.services.job_repository import JobRepository
 from app.services.alert_service import AlertService
 from app.services.email_service import EmailService
 from app.services.email_queue_service import EmailQueueService
+from app.services.embedding_service import EmbeddingService
 from app.models.alert_model import UserAlert
 from app.core.database import SessionLocal
 
@@ -24,8 +25,42 @@ async def sync_redis_job():
     await sync_service.check_consistency()
 
 
+async def _generate_and_store_embeddings(saved_jobs, repo):
+    """
+    Generate embeddings for newly saved jobs and store them in the DB.
+    If the embedding service is unavailable, logs a warning and skips.
+    The backfill task will pick them up later.
+    """
+    if not saved_jobs:
+        return
+
+    embedding_service = EmbeddingService()
+    texts = [
+        EmbeddingService.build_job_text(job.title or "", job.description or "")
+        for job in saved_jobs
+    ]
+
+    embeddings = await embedding_service.embed_batch(texts)
+
+    if embeddings is None:
+        logger.warning(
+            f"Embedding service unavailable. {len(saved_jobs)} jobs saved without embeddings "
+            "(backfill will handle them later)."
+        )
+        return
+
+    pairs = [
+        (job.id, emb)
+        for job, emb in zip(saved_jobs, embeddings)
+        if emb is not None
+    ]
+    if pairs:
+        updated = repo.update_embeddings_batch(pairs)
+        logger.info(f"Stored embeddings for {updated} jobs")
+
+
 async def fetch_and_save_job():
-    """Background job to fetch and save jobs every 2 hours."""
+    """Background job to fetch, save, and embed jobs every hour."""
     logger.info("Starting fetch and save job...")
     try:
         fetcher = FetcherService()
@@ -37,12 +72,14 @@ async def fetch_and_save_job():
                 repo = JobRepository(db)
                 saved_count, saved_jobs = repo.save_jobs_batch(unique_jobs)
                 logger.info(f"Fetch and save job completed: {saved_count} jobs saved")
+
+                # Generate embeddings for the newly saved jobs
+                await _generate_and_store_embeddings(saved_jobs, repo)
                 
                 # Check alerts and queue notifications (async)
                 if saved_count > 0 and saved_jobs:
                     logger.info("Checking alerts...")
                     alert_service = AlertService(db)
-                    # Get all active alerts
                     alerts = db.query(UserAlert).filter_by(is_active=True).all()
 
                     if not alerts:
@@ -67,6 +104,31 @@ async def fetch_and_save_job():
             logger.info("No unique jobs to save")
     except Exception as e:
         logger.error(f"Error in fetch and save job: {e}")
+
+
+async def backfill_embeddings_job():
+    """
+    Background safety-net job: finds active jobs that have no embedding
+    and generates + stores embeddings in batches.
+    Runs every 30 minutes.
+    """
+    logger.info("Starting embedding backfill job...")
+    try:
+        db = SessionLocal()
+        try:
+            repo = JobRepository(db)
+            jobs_missing = repo.get_jobs_without_embeddings(limit=500)
+
+            if not jobs_missing:
+                logger.info("No jobs missing embeddings, backfill skipped")
+                return
+
+            logger.info(f"Found {len(jobs_missing)} jobs without embeddings, backfilling...")
+            await _generate_and_store_embeddings(jobs_missing, repo)
+        finally:
+            db.close()
+    except Exception as e:
+        logger.error(f"Error in backfill embeddings job: {e}")
 
 
 async def process_email_queue_job():
@@ -116,6 +178,24 @@ async def process_email_queue_job():
         logger.error(f"Error in email queue job: {e}")
 
 
+async def cleanup_old_jobs():
+    """
+    Background job to delete jobs older than 30 days.
+    Runs once a month to keep the database lean.
+    """
+    logger.info("Starting old jobs cleanup...")
+    try:
+        db = SessionLocal()
+        try:
+            repo = JobRepository(db)
+            deleted = repo.delete_old_jobs(older_than_days=30)
+            logger.info(f"Old jobs cleanup complete: {deleted} jobs removed")
+        finally:
+            db.close()
+    except Exception as e:
+        logger.error(f"Error in old jobs cleanup: {e}")
+
+
 def start_background_scheduler():
     """Start the APScheduler for background tasks."""
     if scheduler.running:
@@ -137,12 +217,28 @@ def start_background_scheduler():
         name="Fetch and save jobs every 1 hour",
     )
 
+    # Add job to backfill missing embeddings every 30 minutes
+    scheduler.add_job(
+        backfill_embeddings_job,
+        IntervalTrigger(minutes=30),
+        id="backfill_embeddings_job",
+        name="Backfill missing job embeddings every 30 minutes",
+    )
+
     # Add job to process email queue every 5 minutes
     scheduler.add_job(
         process_email_queue_job,
         IntervalTrigger(minutes=5),
         id="email_queue_job",
         name="Process email queue every 5 minutes",
+    )
+
+    # Add job to clean up old jobs every 30 days
+    scheduler.add_job(
+        cleanup_old_jobs,
+        IntervalTrigger(days=30),
+        id="cleanup_old_jobs",
+        name="Delete jobs older than 30 days (monthly)",
     )
 
     scheduler.start()
