@@ -31,8 +31,8 @@ const footerLinks = [
 ];
 
 const socialLinks = [
-  { icon: Github, href: '#', label: 'GitHub' },
-  { icon: Linkedin, href: '#', label: 'LinkedIn' },
+  { icon: Github, href: 'https://github.com/yash-076/job-aggregator', label: 'GitHub' },
+  { icon: Linkedin, href: 'https://www.linkedin.com/in/yashrastogi11/', label: 'LinkedIn' },
   { icon: Twitter, href: '#', label: 'Twitter' },
 ];
 
