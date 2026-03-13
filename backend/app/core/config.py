@@ -6,6 +6,22 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379"
     log_level: str = "INFO"
 
+    # Database connection pool (SQLAlchemy, Neon-friendly defaults)
+    db_pool_pre_ping: bool = True
+    db_pool_recycle_seconds: int = 1800
+    db_pool_size: int = 2
+    db_max_overflow: int = 2
+    db_pool_timeout_seconds: int = 30
+    db_pool_use_lifo: bool = True
+
+    # PostgreSQL / psycopg2 connection args
+    db_connect_timeout_seconds: int = 10
+    db_sslmode: str | None = "require"
+    db_keepalives: int = 1
+    db_keepalives_idle: int = 30
+    db_keepalives_interval: int = 10
+    db_keepalives_count: int = 5
+
     # JWT auth
     jwt_secret_key: str = "change-me"
     jwt_algorithm: str = "HS256"
@@ -23,7 +39,7 @@ class Settings(BaseSettings):
     adzuna_app_key: str = ""
     adzuna_country: str = ""
     adzuna_base_url: str = "https://api.adzuna.com/v1/api"
-    adzuna_job_queries: str = "software engineer,python developer,data scientist"  # comma-separated
+    adzuna_job_queries: str = "software engineer,python developer,data scientist,manager,human resource"  # comma-separated
 
     # Embedding microservice settings
     embedding_service_url: str = ""

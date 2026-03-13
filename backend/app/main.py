@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from app.core.config import settings
+from app.core.database import engine
 from app.core.scheduler import start_background_scheduler, stop_background_scheduler
 from app.core.init_db import init_db
 from app.api.job_routes import router as jobs_router
@@ -44,6 +45,7 @@ async def lifespan(app: FastAPI):
     try:
         logger.info("Shutting down...")
         stop_background_scheduler()
+        engine.dispose()
         logger.info("Background scheduler stopped.")
     except Exception as e:
         logger.error(f"Shutdown error: {e}", exc_info=True)
