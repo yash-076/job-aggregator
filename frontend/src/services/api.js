@@ -63,6 +63,23 @@ function getAuthHeaders() {
 }
 
 const api = {
+  // Warm up backend on first frontend visit (useful for Render free tier sleep)
+  wakeBackend: async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    try {
+      await fetch(`${API_BASE}/health`, {
+        method: 'GET',
+        signal: controller.signal,
+      });
+    } catch {
+      // Best-effort warm-up; failures are intentionally ignored.
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  },
+
   // Authentication
   register: (data) =>
     fetchWithErrorHandling(`${API_BASE}/auth/register`, {

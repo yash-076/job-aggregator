@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { DarkLayout } from './components/landing/DarkLayout';
@@ -16,6 +16,7 @@ import { Privacy } from './pages/Privacy';
 import { Terms } from './pages/Terms';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
+import api from './services/api';
 import './index.css';
 
 /**
@@ -25,6 +26,10 @@ import './index.css';
  * - Protected pages (search, alerts, resume) use AppDarkLayout (AppNavbar + LandingFooter)
  */
 export default function App() {
+  useEffect(() => {
+    api.wakeBackend();
+  }, []);
+
   return (
     <ThemeProvider>
       <AuthProvider>
