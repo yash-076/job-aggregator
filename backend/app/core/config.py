@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     embedding_service_url: str = ""
     embedding_api_key: str = ""
     embedding_batch_size: int = 1  # max texts per embed-batch call
+
+    # Runtime controls
+    scheduler_enabled: bool = False
+    backfill_enabled: bool = False
     
     class Config:
         env_file = str(Path(__file__).parent.parent / ".env")

@@ -34,8 +34,11 @@ async def lifespan(app: FastAPI):
         logger.info("Starting up...")
         init_db()  # Initialize database schema only if empty
         logger.info("Database initialized successfully.")
-        start_background_scheduler()
-        logger.info("Background scheduler started.")
+        if settings.scheduler_enabled:
+            start_background_scheduler()
+            logger.info("Background scheduler started.")
+        else:
+            logger.info("Background scheduler is disabled by configuration.")
     except Exception as e:
         logger.error(f"Startup failed: {e}", exc_info=True)
         raise
@@ -44,9 +47,10 @@ async def lifespan(app: FastAPI):
     
     try:
         logger.info("Shutting down...")
-        stop_background_scheduler()
+        if settings.scheduler_enabled:
+            stop_background_scheduler()
         engine.dispose()
-        logger.info("Background scheduler stopped.")
+        logger.info("Shutdown cleanup complete.")
     except Exception as e:
         logger.error(f"Shutdown error: {e}", exc_info=True)
 

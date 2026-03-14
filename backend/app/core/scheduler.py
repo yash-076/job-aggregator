@@ -11,6 +11,7 @@ from app.services.email_queue_service import EmailQueueService
 from app.services.embedding_service import EmbeddingService
 from app.models.alert_model import UserAlert
 from app.core.database import SessionLocal
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -116,6 +117,10 @@ async def backfill_embeddings_job():
     within free-tier timeout limits. Over successive runs every
     minute, all jobs will eventually get embeddings.
     """
+    if not settings.backfill_enabled:
+        logger.info("Backfill job is disabled by configuration. Skipping run.")
+        return
+
     BACKFILL_BATCH_SIZE = 1  # process one job per minute to avoid free-tier timeouts
 
     try:
@@ -203,6 +208,10 @@ async def cleanup_old_jobs():
 
 def start_background_scheduler():
     """Start the APScheduler for background tasks."""
+    if not settings.scheduler_enabled:
+        logger.info("Background scheduler is disabled by configuration. Skipping startup.")
+        return
+
     if scheduler.running:
         return
 
@@ -222,13 +231,16 @@ def start_background_scheduler():
         name="Fetch and save jobs every 1 hour",
     )
 
-    # Add job to backfill missing embeddings every 3 minutes
-    scheduler.add_job(
-        backfill_embeddings_job,
-        IntervalTrigger(minutes=3),
-        id="backfill_embeddings_job",
-        name="Backfill missing job embeddings every 3 minutes",
-    )
+    if settings.backfill_enabled:
+        # Add job to backfill missing embeddings every 3 minutes
+        scheduler.add_job(
+            backfill_embeddings_job,
+            IntervalTrigger(minutes=3),
+            id="backfill_embeddings_job",
+            name="Backfill missing job embeddings every 3 minutes",
+        )
+    else:
+        logger.info("Backfill scheduler job is disabled by configuration.")
 
     # Add job to process email queue every 5 minutes
     scheduler.add_job(

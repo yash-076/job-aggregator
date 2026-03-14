@@ -31,6 +31,10 @@ BATCH_SIZE = settings.embedding_batch_size
 
 
 async def main():
+    if not settings.backfill_enabled:
+        logger.info("Backfill is disabled by configuration. Exiting without changes.")
+        return
+
     # Ensure tables exist
     Base.metadata.create_all(bind=engine)
     logger.info("Database ready")
